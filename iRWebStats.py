@@ -46,7 +46,7 @@ class iRWebStats:
 			future login procedures and save time. A cookie usually last  
 			at least a couple of hours """
 
-		self.AddToLog("Saving cookie for future use")
+		print("Saving cookie for future use")
 		o = open('cookie.tmp', 'w')
 		o.write(self.last_cookie)
 		o.write('\r\n' + str(self.custid))
@@ -75,12 +75,12 @@ class iRWebStats:
 				'todaysdate': ''}
 		try:
 			if not quiet:
-				self.AddToLog("Loggin in...")
+				print("Loggin in...")
 			# Check if there's a previous cookie
 			if (self.__load_cookie() and self.__check_cookie()):
 				#  If previous cookie is valid
 				if not quiet:
-					self.AddToLog("Previous cookie valid")
+					print("Previous cookie valid")
 				self.logged = True
 				# Load iracing info
 				if not quiet:
@@ -91,7 +91,7 @@ class iRWebStats:
 			self.custid = ''
 			r = self.__req(ct.URL_IRACING_LOGIN, grab_cookie=True)
 			if r.find("<h2>iRacing Is Offline</h2>") > -1:
-				self.AddToLog("iRacing is Offline, try again later")
+				print("iRacing is Offline, try again later")
 				self.logged = False
 			else:
 				r = self.__req(ct.URL_IRACING_LOGIN2, data,
@@ -106,10 +106,10 @@ class iRWebStats:
 						self.__get_irservice_info(r)
 					self.__save_cookie()
 					if not quiet:
-						self.AddToLog("Log in succesful")
+						print("Log in succesful")
 				else:
 					if not quiet:
-						self.AddToLog("Invalid Login (user: %s).\n\rPlease check your credentials" % (username))
+						print("Invalid Login (user: %s).\n\rPlease check your credentials" % (username))
 					self.logged = False
 
 		except Exception as e:
@@ -143,9 +143,9 @@ class iRWebStats:
 			try:
 				req = requests.get(url, headers=h, params=data, verify=False)
 			except requests.exceptions.ConnectionError as e:
-				self.AddToLog("Unable to connect to iracing.com")
+				print("Unable to connect to iracing.com")
 			except (requests.exceptions.ConnectTimeout, requests.exceptions.ReadTimeout) as e:
-				self.AddToLog("Timeout connecting to iracing.com")
+				print("Timeout connecting to iracing.com")
 				
 		else:
 			h['Content-Type'] = 'application/x-www-form-urlencoded;\
@@ -161,7 +161,7 @@ class iRWebStats:
 			cars, series, etc. Check self.TRACKS, self.CARS, self.DIVISION 
 			, self.CARCLASS, self.CLUB. """
 
-		self.AddToLog("Getting iRacing Service info (cars, tracks, etc.)")
+		print("Getting iRacing Service info (cars, tracks, etc.)")
 		items = {"TRACKS":  "TrackListing", "CARS": "CarListing",
 				 "CARCLASS":  "CarClassListing", "CLUBS": "ClubListing",
 				 "SEASON": "SeasonListing", "DIVISION": "DivisionListing",
@@ -178,7 +178,7 @@ class iRWebStats:
 				setattr(self, i, o)  # i.e self.TRACKS = o
 
 			except Exception as e:
-				self.AddToLog(("Error ocurred. Couldn't get %s" % i))
+				print(("Error ocurred. Couldn't get %s" % i))
 		
 
 	@logged_in
@@ -304,7 +304,7 @@ class iRWebStats:
 			drivers = format_results(drivers, header)
 
 		except Exception as e:
-			self.AddToLog("Error fetching driver search data. Error: %s" % e)
+			print("Error fetching driver search data. Error: %s" % e)
 
 		return drivers, total_results
 
@@ -503,6 +503,13 @@ class iRWebStats:
 		except:
 			return None
 
+	def last_series(self, userid):
+		""" Returns stats for the last 3 series the driver has raced in """
+		
+		r = self.__req(ct.URL_LAST_SERIES % userid)
+		res = parse(r)
+		
+		return res		
 
 	@logged_in
 	def my_season_standings(self, season, start=1, end=1):

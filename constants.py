@@ -62,6 +62,7 @@ URL_HOSTED_RESULTS = 'http://members.iracing.com/memberstats/member/GetPrivateSe
 URL_SELECT_SERIES = 'http://members.iracing.com/membersite/member/SelectSeries.do?&season=%s&view=undefined&nocache=%s'
 URL_SESSION_TIMES = 'http://members.iracing.com/membersite/member/GetSessionTimes'#T-m-d
 URL_SERIES_RACERESULTS = 'http://members.iracing.com/memberstats/member/GetSeriesRaceResults'
+URL_LAST_SERIES = 'http://members.iracing.com/memberstats/member/GetLastSeries?custid=%s'
 
 URL_GET_EVENTRESULTS = 'http://members.iracing.com/membersite/member/GetEventResultsAsCSV?subsessionid=%s&simsesnum=%s&includeSummary=1' #simsesnum 0 race, -1 qualy or practice, -2 practice
 URL_GET_EVENTRESULTS2 = 'http://members.iracing.com/membersite/member/EventResult.do?subsessionid=%s&custid=%s'
