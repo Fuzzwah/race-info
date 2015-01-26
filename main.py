@@ -25,6 +25,8 @@ if ir.startup():
 	ir_total = 0
 	drv_count = 0
 	irs = list()
+	
+	print(ir['DriverInfo'])
 	for drv in ir['DriverInfo']['Drivers']:
 		if drv['CarNumberRaw'] > 0:
 			q_time = qualy_results[int(drv['CarIdx'])]
