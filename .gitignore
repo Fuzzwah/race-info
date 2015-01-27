@@ -1,3 +1,5 @@
+config.ini
+
 test.py
 *.geany
 *.bat

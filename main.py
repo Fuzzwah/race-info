@@ -5,6 +5,7 @@ import irsdk
 from prettytable import PrettyTable
 import constants as ct
 from iRWebStats import iRWebStats
+import config as cfg
 
 def median(mylist):
 	sorts = sorted(mylist)
@@ -16,8 +17,16 @@ def median(mylist):
 ir = irsdk.IRSDK()
 irw = iRWebStats()
 
+cfg.read("config.ini")
+if cfg.config['password'] == '':
+	cfg.config['username'] = str(input('Your iRacing username: '))
+	cfg.config['password'] = str(input('Your iRacing password: '))
+	
+	cfg.config.write()
+	print("Config saved")
+	
 try:
-	irw.login('rob.crouch@gmail.com', 'cYFVPo%^Gs03', quiet=True)
+	irw.login(cfg.config['username'], cfg.config['password'], quiet=True)
 	web_api = True
 	tab = PrettyTable(['#', 'Name', 'Q Time', 'License', 'iR', 'Races', 'SPos', 'AvgFin', 'AvgInc'])
 except:
