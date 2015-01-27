@@ -17,9 +17,9 @@ ir = irsdk.IRSDK()
 irw = iRWebStats()
 
 try:
-	irw.login(cfg.config['Account']['username'], cfg.config['Account']['password'], quiet=True)
+	irw.login('rob.crouch@gmail.com', 'cYFVPo%^Gs03', quiet=True)
 	web_api = True
-	tab = PrettyTable(['#', 'Name', 'Q Time', 'License', 'iRating', 'Starts', 'S Pos', 'AvgFin', 'AvgInc'])
+	tab = PrettyTable(['#', 'Name', 'Q Time', 'License', 'iR', 'Races', 'SPos', 'AvgFin', 'AvgInc'])
 except:
 	web_api = False
 	tab = PrettyTable(['#', 'Name', 'Q Time', 'License', 'iRating'])
@@ -47,20 +47,19 @@ if ir.startup():
 			
 			if web_api:
 				drv_last_series = irw.last_series(drv['UserID'])
-				print(drv_last_series)
 				series_stats = False
 				for s in drv_last_series:
 					if s['seriesID'] == seriesid:
 						series_stats = True
-						row.append('{0: <6}'.format(s['starts']))
-						row.append('{0: <6}'.format(s['position']))
-						row.append('{0: <6}'.format(s['avgFinish']))
+						row.append(s['starts'])
+						row.append(s['position'])
+						row.append(s['avgFinish'])
 						avginc = "%.0f" % float(int(s['incidents']) // int(s['starts']))
-						row.append('{0: <6}'.format(avginc))
+						row.append(avginc)
 				
 				if not series_stats:
-					row.append('{0: <6}'.format(""))
-					row.append('{0: <6}'.format(""))
+					row.append('{0: <5}'.format(""))
+					row.append('{0: <5}'.format(""))
 					row.append('{0: <6}'.format(""))
 					row.append('{0: <6}'.format(""))
 					

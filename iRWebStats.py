@@ -20,10 +20,11 @@ import csv
 import time
 import json
 import re
-from StringIO import StringIO
-from wx.lib.pubsub import pub
+import io
 from decimal import Decimal
 from util import *
+
+requests.packages.urllib3.disable_warnings()
 
 class iRWebStats:
 	global custid
@@ -590,7 +591,7 @@ class iRWebStats:
 			event is identified by a subsession id. """
 		r = self.__req(ct.URL_GET_EVENTRESULTS % (subsession, sessnum))\
 				.encode('utf8')
-		data = [x for x in csv.reader(StringIO(r), delimiter=',',
+		data = [x for x in csv.reader(io.StringIO(r), delimiter=',',
 									  quotechar='"')]
 		header_ev, header_res = data[0], data[3]
 		event_info = dict(list(zip(header_ev, data[1])))
@@ -711,9 +712,6 @@ class iRWebStats:
 		
 		return record
 	
-	def AddToLog(self, s):
-		pub.sendMessage('AddToLog', msg=s)
-
 if __name__ == '__main__':
     irw = iRWebStats()
     user, passw = ('username', 'password')
