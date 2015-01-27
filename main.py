@@ -29,9 +29,11 @@ try:
 	irw.login(cfg.config['username'], cfg.config['password'], quiet=True)
 	web_api = True
 	tab = PrettyTable(['#', 'Name', 'Q Time', 'License', 'iR', 'Races', 'SPos', 'AvgFin', 'AvgInc'])
+	display = ['#', 'Name', 'License', 'iR', 'Races', 'SPos', 'AvgFin', 'AvgInc']
 except:
 	web_api = False
 	tab = PrettyTable(['#', 'Name', 'Q Time', 'License', 'iRating'])
+	display = ['#', 'Name', 'License', 'iR']
 	print("Unable to log into iRacing.com")
 
 if ir.startup():
@@ -87,7 +89,7 @@ if ir.startup():
 	print(" ")
 
 	tab.align['Name'] = 'l'
-	table = re.sub("999.999", "       ", tab.get_string(sortby='Q Time'))
+	table = re.sub("999.999", "       ", tab.get_string(sortby='Q Time', fields=display))
 	print(table)
 else:
 	print("iRacing is not running")
