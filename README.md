@@ -3,22 +3,29 @@ Reports information on your rivals prior to an iRacing race.
 
 ## Example Output
 
-    Approx SOF: 2306
-    Est winner PTS: 144
-        
-    +----+-----------------------+---------+---------+---------+
-    | #  | Name                  |  Q Time | License | iRating |
-    +----+-----------------------+---------+---------+---------+
-    | 5  | Dmitriy Nikitskiy     |  82.414 |  C 3.32 |   2423  |
-    | 3  | Kristian Takacs       |  82.672 |  A 1.38 |   2896  |
-    | 2  | Mehdi Mokrani         |  82.824 |  A 3.14 |   3349  |
-    | 1  | Michael Cleve         |  82.873 |  B 2.21 |   3787  |
-    | 8  | Francisco Sarabia     |  83.080 |  D 4.92 |   2091  |
-    | 6  | Oscar Pink            |  83.087 |  D 3.34 |   2254  |
-    | 11 | Jorge Atienza Pujalte |  83.235 |  D 3.61 |   1971  |
-    | 9  | Nikola Simic          |  83.484 |  D 3.66 |   2070  |
-    | 4  | Damion Nobel          |  83.754 |  C 3.39 |   2440  |
-    | 12 | Fabian Trickle        |  83.930 |  D 3.90 |   1774  |
-    | 7  | Jussi Tahvanainen     |         |  B 3.35 |   2106  |
-    | 10 | Bruno MOURAREAU       |         |  C 3.38 |   2029  |
-    +----+-----------------------+---------+---------+---------+
+    Approx SOF: 1237    
+    Est winner PTS: 77
+    
+    +----+------------------+---------+---------+------+-------+-------+--------+--------+
+    | #  | Name             |  Q Time | License |  iR  | Races |  SPos | AvgFin | AvgInc |
+    +----+------------------+---------+---------+------+-------+-------+--------+--------+
+    | 1  | Stephen Nobes    |         |  C 3.35 | 2045 |   10  |  208  |   6    |   5    |
+    | 2  | Mike Swenson     |         |  A 4.99 | 1803 |   17  |  493  |   8    |   1    |
+    | 3  | Johan Hallberg   |         |  B 3.40 | 1636 |   55  |  545  |   8    |   5    |
+    | 4  | Jorge de León    |         |  A 1.72 | 1566 |   5   |  1615 |   9    |   3    |
+    | 5  | Diego de Abreu   |         |  C 3.31 | 1542 |       |       |        |        |
+    | 6  | Jesse Boyd       |         |  A 1.93 | 1473 |   1   |  1804 |   3    |   5    |
+    | 7  | Lucas Baweda     |         |  C 2.78 | 1441 |   8   |  1720 |   6    |   5    |
+    | 8  | Eric Stamp       |         |  D 2.67 | 1366 |   20  |  574  |   6    |   9    |
+    | 9  | Tyson Williams   |         |  B 1.33 | 1318 |       |       |        |        |
+    | 10 | Neil Yates       |         |  C 2.52 | 1202 |   28  |  479  |   7    |   7    |
+    | 11 | Rafael Falvo     |         |  B 1.13 | 1197 |       |       |        |        |
+    | 12 | Gerrard Daly     |         |  A 3.31 | 1190 |   95  |  283  |   8    |   2    |
+    | 13 | Jose Queiroz     |         |  D 3.32 | 1139 |       |       |        |        |
+    | 14 | Troy Hood        |         |  A 3.52 | 1097 |   31  |  621  |   8    |   2    |
+    | 15 | Jan Ribas Mundi  |         |  D 3.32 | 1047 |   5   |  2680 |   11   |   9    |
+    | 16 | Wesley Winterink |         |  B 3.56 | 936  |   6   |  738  |   9    |   4    |
+    | 17 | Chuks Nwankwo    |         |  B 2.60 | 804  |   32  |  997  |   11   |   3    |
+    | 18 | John Hamblin     |         |  D 3.20 | 694  |   37  |  1040 |   9    |   8    |
+    | 19 | Yves Pelland     |         |  D 3.37 | 683  |   2   |  3300 |   10   |   1    |
+    +----+------------------+---------+---------+------+-------+-------+--------+--------+
