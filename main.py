@@ -54,13 +54,15 @@ if ir.startup():
 			q_time = qualy_results[int(drv['CarIdx'])]
 			if q_time == 0.0:
 				q_time = 999.999
-			row = ([drv['CarNumberRaw'], drv['UserName'], "%.3f" % float(q_time), drv['LicString'], drv['IRating']])
+			name = drv['AbbrevName'].split(', ')
+			name = "%s %s" % (name[1], name[0][:17])
+			row = ([drv['CarNumberRaw'], name, "%.3f" % float(q_time), drv['LicString'], drv['IRating']])
 			
 			if web_api:
 				drv_last_series = irw.last_series(drv['UserID'])
 				series_stats = False
 				for s in drv_last_series:
-					if s['seriesID'] == seriesid:
+					if s['seriesID'] == seriesid and not series_stats:
 						series_stats = True
 						row.append(s['starts'])
 						row.append(s['position'])
@@ -71,9 +73,8 @@ if ir.startup():
 				if not series_stats:
 					row.append('{0: <5}'.format(""))
 					row.append('{0: <5}'.format(""))
-					row.append('{0: <6}'.format(""))
-					row.append('{0: <6}'.format(""))
-					
+					row.append('{0: <5}'.format(""))
+					row.append('{0: <5}'.format(""))
 			tab.add_row(row)
 					
 			ir_total += int(drv['IRating'])
@@ -89,6 +90,11 @@ if ir.startup():
 	print(" ")
 
 	tab.align['Name'] = 'l'
+	if web_api:
+		tab.align['Races'] = 'r'
+		tab.align['SPos'] = 'r'
+		tab.align['AvgFin'] = 'r'
+		tab.align['AvgInc'] = 'r'
 	table = re.sub("999.999", "       ", tab.get_string(sortby='Q Time', fields=display))
 	print(table)
 else:
