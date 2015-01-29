@@ -28,7 +28,7 @@ if cfg.config['password'] == '':
 	print("Config saved")
 	
 if ir.startup():
-	if ir['SessionInfo']['Sessions'][1]['SessionType'] == 'Race':
+	if ir['SessionInfo']['Sessions'][1]['SessionType'] == 'Race' or ir['SessionInfo']['Sessions'][2]['SessionType'] == 'Race':
 		try:
 			irw.login(cfg.config['username'], cfg.config['password'], quiet=True)
 			web_api = True
@@ -122,6 +122,7 @@ if ir.startup():
 		print(" ")
 
 		tab.align['Name'] = 'l'
+		tab.align['#'] = 'l'
 		if web_api:
 			tab.align['Races'] = 'r'
 			tab.align['SPos'] = 'r'

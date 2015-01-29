@@ -1,31 +1,40 @@
 # Race Info
+
 Reports information on your rivals prior to an iRacing race.
+
+The License and iRating of each driver is collected using the Session Info API.
+
+An approximation of the strength of field is returned, along with a list of 
+estimated championship points for finishing positions down to 5th.
+
+The User ID is also grabbed and then used in combination with the Web API to 
+pull stats for this series for each driver;
+
+ - the number of races
+ - their current standing in the series
+ - their average finish in races for this series
+ - the average number of incidents per races for this series
+
+The system handles multiclass races and will give the SOF and PTS estimates for
+the car which the user is driving.
 
 ## Example Output
 
-    Approx SOF: 1237    
-    Est winner PTS: 77
+    Approx SOF: 1090
+    Approx PTS: 1st: 68 | 2nd: 58 | 3rd: 49 | 4th: 39 | 5th: 29
     
-    +----+------------------+---------+---------+------+-------+-------+--------+--------+
-    | #  | Name             |  Q Time | License |  iR  | Races |  SPos | AvgFin | AvgInc |
-    +----+------------------+---------+---------+------+-------+-------+--------+--------+
-    | 1  | Stephen Nobes    |         |  C 3.35 | 2045 |   10  |  208  |   6    |   5    |
-    | 2  | Mike Swenson     |         |  A 4.99 | 1803 |   17  |  493  |   8    |   1    |
-    | 3  | Johan Hallberg   |         |  B 3.40 | 1636 |   55  |  545  |   8    |   5    |
-    | 4  | Jorge de León    |         |  A 1.72 | 1566 |   5   |  1615 |   9    |   3    |
-    | 5  | Diego de Abreu   |         |  C 3.31 | 1542 |       |       |        |        |
-    | 6  | Jesse Boyd       |         |  A 1.93 | 1473 |   1   |  1804 |   3    |   5    |
-    | 7  | Lucas Baweda     |         |  C 2.78 | 1441 |   8   |  1720 |   6    |   5    |
-    | 8  | Eric Stamp       |         |  D 2.67 | 1366 |   20  |  574  |   6    |   9    |
-    | 9  | Tyson Williams   |         |  B 1.33 | 1318 |       |       |        |        |
-    | 10 | Neil Yates       |         |  C 2.52 | 1202 |   28  |  479  |   7    |   7    |
-    | 11 | Rafael Falvo     |         |  B 1.13 | 1197 |       |       |        |        |
-    | 12 | Gerrard Daly     |         |  A 3.31 | 1190 |   95  |  283  |   8    |   2    |
-    | 13 | Jose Queiroz     |         |  D 3.32 | 1139 |       |       |        |        |
-    | 14 | Troy Hood        |         |  A 3.52 | 1097 |   31  |  621  |   8    |   2    |
-    | 15 | Jan Ribas Mundi  |         |  D 3.32 | 1047 |   5   |  2680 |   11   |   9    |
-    | 16 | Wesley Winterink |         |  B 3.56 | 936  |   6   |  738  |   9    |   4    |
-    | 17 | Chuks Nwankwo    |         |  B 2.60 | 804  |   32  |  997  |   11   |   3    |
-    | 18 | John Hamblin     |         |  D 3.20 | 694  |   37  |  1040 |   9    |   8    |
-    | 19 | Yves Pelland     |         |  D 3.37 | 683  |   2   |  3300 |   10   |   1    |
-    +----+------------------+---------+---------+------+-------+-------+--------+--------+
+    +----+-----+---------------+---------+------+-------+------+------+------+
+    | #  | Car | Name          | License |  iR  | Races | SPos | AFin | AInc |
+    +----+-----+---------------+---------+------+-------+------+------+------+
+    | 2  | sol | C Alain       |  B 2.21 | 2504 |   176 |   13 |  3   |  4   |
+    | 1  | sol | K Deslauriers |  A 3.33 | 2565 |     2 |  365 |  3   |  4   |
+    | 3  | sol | J Werveke     |  A 2.30 | 1888 |     2 |  709 |  5   |  3   |
+    | 4  | sol | D Isaenko     |  D 3.31 | 1863 |     7 |  215 |  3   |  7   |
+    | 5  | mx5 | R Soto2       |  D 2.36 | 1697 |    61 |   33 |  5   |  7   |
+    | 6  | sol | C Wesemael    |  D 3.58 | 1512 |     5 |  753 |  5   |  5   |
+    | 7  | sol | M Barcelos    |  D 3.29 | 1485 |     2 |  863 |  7   |  0   |
+    | 8  | sol | F Hough       |  B 4.40 | 1378 |     3 |  254 |  5   |  2   |
+    | 9  | mx5 | M Leo         |  D 2.44 | 1320 |     5 |  945 |  5   |  5   |
+    | 10 | mx5 | J Davis2      |  D 2.61 | 1045 |     4 |  705 |  4   |  7   |
+    | 11 | sol | M Nötzelmann  |  D 2.64 | 471  |     3 |  721 |  5   |  7   |
+    +----+-----+---------------+---------+------+-------+------+------+------+
