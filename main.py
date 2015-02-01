@@ -1,6 +1,7 @@
 #!python3
 #-*- coding: utf-8 -*-
 
+import os
 import re
 import irsdk
 from prettytable import PrettyTable
@@ -8,6 +9,8 @@ import constants as ct
 from iRWebStats import iRWebStats
 import config as cfg
 from collections import defaultdict
+
+os.system("mode con lines=40")
 
 def median(mylist):
 	sorts = sorted(mylist)
@@ -18,6 +21,19 @@ def median(mylist):
 
 ir = irsdk.IRSDK()
 irw = iRWebStats()
+
+print("                ____                  ___        __       ") 
+print("               |  _ \ __ _  ___ ___  |_ _|_ __  / _| ___  ") 
+print("               | |_) / _` |/ __/ _ \  | || '_ \| |_ / _ \ ") 
+print("               |  _ < (_| | (_|  __/  | || | | |  _| (_) |") 
+print("               |_| \_\__,_|\___\___| |___|_| |_|_|  \___/ ") 
+print(" ")
+print(" ")
+print("                  v1.150129") 
+print("                  Created by Robert \"Fuzzwah\" Crouch") 
+print("                  http://fuzzysracing.blogspot.com")                                         
+print(" ")
+print(" ")
 
 cfg.read("config.ini")
 if cfg.config['password'] == '':
@@ -30,7 +46,10 @@ if cfg.config['password'] == '':
 if ir.startup():
 	if ir['SessionInfo']['Sessions'][1]['SessionType'] == 'Race' or ir['SessionInfo']['Sessions'][2]['SessionType'] == 'Race':
 		try:
+
+			print("       Please wait, connecting to iracing.com to retrieve driver data")
 			irw.login(cfg.config['username'], cfg.config['password'], quiet=True)
+			
 			web_api = True
 			tab = PrettyTable(['#', 'Car', 'Name', 'Q Time', 'License', 'iR', 'Races', 'SPos', 'AFin', 'AInc'])
 			display = ['#', 'Car', 'Name', 'License', 'iR', 'Races', 'SPos', 'AFin', 'AInc']
@@ -106,6 +125,7 @@ if ir.startup():
 		winner_pts = sof / 16
 		pts_diff = (winner_pts / (drv_count[my_car] - 1))
 		
+		os.system('cls' if os.name == 'nt' else 'clear')
 		print(" ")
 		print("Approx SOF: %.0f" % sof)
 		if drv_count[my_car] > 4:
@@ -122,7 +142,7 @@ if ir.startup():
 		print(" ")
 
 		tab.align['Name'] = 'l'
-		tab.align['#'] = 'l'
+		tab.align['#'] = 'r'
 		if web_api:
 			tab.align['Races'] = 'r'
 			tab.align['SPos'] = 'r'
@@ -138,3 +158,9 @@ if ir.startup():
 		print("This is not a race session.")
 else:
 	print("iRacing is not running.")
+
+print(" ")
+print("Press Enter to close ...")
+input()
+
+
