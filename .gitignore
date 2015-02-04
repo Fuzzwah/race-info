@@ -1,10 +1,5 @@
 config.ini
-
-WeekendInfo.txt
-SessionInfo.txt
-QualifyResultsInfo.txt
-DriverInfo.txt
-
+cookie.tmp
 test.py
 *.geany
 *.bat
