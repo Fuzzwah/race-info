@@ -36,7 +36,7 @@ print("                   |  _ < (_| | (_|  __/  | || | | |  _| (_) |           
 print("                   |_| \_\__,_|\___\___| |___|_| |_|_|  \___/                  ") 
 print("                                                                               ")
 print("                                                                               ")
-print("                      v1.150204                                                ") 
+print("                      v1.150205                                                ") 
 print("                      Created by Robert \"Fuzzwah\" Crouch                     ") 
 print("                      http://fuzzysracing.blogspot.com                         ")                                         
 print("                                                                               ")
@@ -48,10 +48,10 @@ if cfg.config['password'] == '':
 	cfg.config['password'] = str(input('Your iRacing password: '))
 	
 	cfg.config.write()
-	print("Config saved")
+	print("                                 Config saved                                  ")
+	print("                                                                               ")
 	
 if ir.startup():
-	json.dump(ir['SessionInfo'], open("SessionInfo.txt",'w'), sort_keys=True, indent=4, separators=(',', ': '))
 	if len(ir['SessionInfo']['Sessions']) > 1:
 		if ir['SessionInfo']['Sessions'][1]['SessionType'] == 'Race' or ir['SessionInfo']['Sessions'][2]['SessionType'] == 'Race':
 			if debug:
@@ -96,7 +96,7 @@ if ir.startup():
 					count += 1
 					name = drv['AbbrevName'].split(', ')
 					name = "%s %s" % (name[1], name[0][:17])
-					row = ([int(drv['CarIdx']), drv['CarNumberRaw'], drv['CarPath'][:3], name.encode('windows-1252', errors='replace').decode('windows-1252', errors='replace'), drv['LicString'], drv['IRating']])
+					row = ([int(drv['CarIdx']), drv['CarNumberRaw'], drv['CarPath'][:3].uppercase, name.encode('windows-1252', errors='replace').decode('windows-1252', errors='replace'), drv['LicString'], drv['IRating']])
 					
 					try:
 						irs[drv['CarPath'][:3]] = list()
@@ -144,17 +144,27 @@ if ir.startup():
 			
 			os.system('cls' if os.name == 'nt' else 'clear')
 			print(" ")
-			print("Approx SOF: %.0f" % sof)
-			if drv_count[my_car] > 4:
-				print("Approx PTS: 1st: %.0f | 2nd: %.0f | 3rd: %.0f | 4th: %.0f | 5th: %.0f" % (winner_pts, (winner_pts - pts_diff), (winner_pts - (pts_diff * 2)), (winner_pts - (pts_diff * 3)), (winner_pts - (pts_diff * 4))))
-			elif drv_count[my_car] > 3:
-				print("Approx PTS: 1st: %.0f | 2nd: %.0f | 3rd: %.0f | 4th: %.0f" % (winner_pts, (winner_pts - pts_diff), (winner_pts - (pts_diff * 2)), (winner_pts - (pts_diff * 3))))
-			elif drv_count[my_car] > 2:
-				print("Approx PTS: 1st: %.0f | 2nd: %.0f | 3rd: %.0f" % (winner_pts, (winner_pts - pts_diff), (winner_pts - (pts_diff * 2))))
-			elif drv_count[my_car] > 1:
-				print("Approx PTS: 1st: %.0f | 2nd: %.0f" % (winner_pts, (winner_pts - pts_diff)))
+			if mc:
+				sof_my_car_string = " of %s:" % my_car.uppercase
+				pts_my_car_string = " for %s:" % my_car.uppercase
 			else:
-				print("Approx PTS: 1st: %.0f" % (winner_pts))
+				sof_my_car_string = ""
+				pts_my_car_string = ""
+			sof_string = 
+			print("Approx SOF%s: %.0f" % (sof_my_car_string, sof))
+			if ir['WeekendInfo']['WeekendOptions']['Unofficial'] == 0:
+				if drv_count[my_car] > 4:
+					print("Approx PTS%s: 1st: %.0f | 2nd: %.0f | 3rd: %.0f | 4th: %.0f | 5th: %.0f" % (pts_my_car_string, winner_pts, (winner_pts - pts_diff), (winner_pts - (pts_diff * 2)), (winner_pts - (pts_diff * 3)), (winner_pts - (pts_diff * 4))))
+				elif drv_count[my_car] > 3:
+					print("Approx PTS%s: 1st: %.0f | 2nd: %.0f | 3rd: %.0f | 4th: %.0f" % (pts_my_car_string, winner_pts, (winner_pts - pts_diff), (winner_pts - (pts_diff * 2)), (winner_pts - (pts_diff * 3))))
+				elif drv_count[my_car] > 2:
+					print("Approx PTS%s: 1st: %.0f | 2nd: %.0f | 3rd: %.0f" % (pts_my_car_string, winner_pts, (winner_pts - pts_diff), (winner_pts - (pts_diff * 2))))
+				elif drv_count[my_car] > 1:
+					print("Approx PTS%s: 1st: %.0f | 2nd: %.0f" % (pts_my_car_string, winner_pts, (winner_pts - pts_diff)))
+				else:
+					print("Approx PTS%s: 1st: %.0f" % (pts_my_car_string, winner_pts))
+			else:
+				print("Race is UNOFFICIAL, no PTS will be awarded")
 				
 			print(" ")
 
@@ -169,7 +179,7 @@ if ir.startup():
 			if not mc:
 				display.pop(1)
 				
-			table = re.sub("999.999", "       ", tab.get_string(sortby='ID', fields=display))
+			table = tab.get_string(sortby='ID', fields=display)
 			print(table)
 		else:
 			print("*** ERROR *** This is not a race session")
