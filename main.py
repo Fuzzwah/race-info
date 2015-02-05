@@ -95,11 +95,11 @@ if ir.startup():
 				if drv['CarNumberRaw'] > 0:
 					count += 1
 					name = drv['AbbrevName'].split(', ')
-					name = "%s %s" % (name[1], name[0][:17])
+					name = '{0: <17}'.format("%s %s" % (name[1], name[0][:17]))
 					
 					if irw.custid == drv['UserID']:
 						my_car = drv['CarPath'][:3]
-						name = ">%s<" % name[0][:15]
+						name = ">%s<" % name[:15]
 
 					row = ([int(drv['CarIdx']), drv['CarNumberRaw'], drv['CarPath'][:3].uppercase, name.encode('windows-1252', errors='replace').decode('windows-1252', errors='replace'), drv['LicString'], drv['IRating']])
 					
