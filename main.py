@@ -29,9 +29,11 @@ def median(mylist):
 		return (sorts[length // 2] + sorts[length // 2 - 1]) / 2.0
 	return sorts[length // 2]
 
-# set up our API things
-ir = irsdk.IRSDK() # interfaces with the local iRacing API
-irw = iRWebStats() # interfaces with the iRacing.com website API
+# local iRacing API
+ir = irsdk.IRSDK() 
+
+# iRacing.com website API
+irw = iRWebStats() 
 
 # a pretty looking splash screen, because branding
 print("                    ____                  ___        __                        ") 
@@ -92,37 +94,53 @@ if ir.startup():
 				print("Unable to log into iRacing.com")	
 			
 			seriesid = ir['WeekendInfo']['SeriesID']
-			ir_total = defaultdict(lambda: 0) 					# a dictionary for iRating totals per car, default to 0
-			drv_count = defaultdict(lambda: 0) 					# a dictionary for driver totals per car, default to 0
-			irs = dict() 										# a dictionary for all the iRatings
-			prev_car = "" 										# we do a check against this later
-			my_car = "" 										# blank var for our vehicle
-			mc = False 											# set multiclass to false until proven otherwise
-			count = 0 											# count of drivers, because the full list includes spectators and the pace car
+			# a dictionary for iRating totals per car, default to 0
+			ir_total = defaultdict(lambda: 0) 				
+			# a dictionary for driver totals per car, default to 0	
+			drv_count = defaultdict(lambda: 0) 					
+			# a dictionary for all the iRatings
+			irs = dict() 										
+			# we do a check against this later
+			prev_car = "" 										
+			# blank var for our vehicle
+			my_car = "" 										
+			# set multiclass to false until proven otherwise
+			mc = False 											
+			# count of drivers, because the full list includes spectators and the pace car
+			count = 0 											
 			
 			# lets run through each driver in the race
 			for drv in ir['DriverInfo']['Drivers']:
 				# this checks that the driver isn't a spectator or the pace car, lol
 				if drv['CarNumberRaw'] > 0:
-					count += 1 									# increase our total driver count by one
-					name = drv['AbbrevName'].split(', ') 		# AbbrevName's are LastName, FirstInitial
-					name = "%s %s" % (name[1], name[0][:15]) 	# if the lastname is over 15 chars in length, trim it
-					name = '{0: <17}'.format(name) 				# pad all the names out to be 17 chars total
+					# increase our total driver count by one
+					count += 1 							
+					# AbbrevName's are LastName, FirstInitial		
+					name = drv['AbbrevName'].split(', ') 		
+					# if the lastname is over 15 chars in length, trim it
+					name = "%s %s" % (name[1], name[0][:15]) 	
+					# pad all the names out to be 17 chars total
+					name = '{0: <17}'.format(name) 				
 					
 					# finally lets sort out any special chars so all names will be displayed correctly in the windows console
 					name = name.encode('windows-1252', errors='replace').decode('windows-1252', errors='replace')
 					
-					if irw.custid == drv['UserID']:				# is this driver our user?
-						my_car = drv['CarPath'][:3]				# then this is their car type
-						name = ">%s<" % name[:15]				# wack > < around their name to highlight it
+					# is this driver our user?
+					if irw.custid == drv['UserID']:		
+						# then this is their car type		
+						my_car = drv['CarPath'][:3]		
+						# wack > < around their name to highlight it		
+						name = ">%s<" % name[:15]				
 
 					# collect all the basic info up into a new row
 					row = ([int(drv['CarIdx']), drv['CarNumberRaw'], drv['CarPath'][:3].uppercase, name, drv['LicString'], drv['IRating']])
 					
 					try:
-						irs[drv['CarPath'][:3]] = list()		# try to make a new list for this type of car
+						# try to make a new list for this type of car
+						irs[drv['CarPath'][:3]] = list()		
 					except:
-						blah = 1								# if the car already has an entry, lets avoid an error
+						# if the car already has an entry, lets avoid an error
+						blah = 1								
 					
 					# if we do have a connection to the website, lets do all this extra stuff
 					if web_api :
@@ -132,11 +150,16 @@ if ir.startup():
 						for s in drv_last_series:
 							# is the series which this race is part of one of those 3?
 							if s['seriesID'] == seriesid and not series_stats:
-								series_stats = True													# sweet it is!
-								row.append(s['starts'])												# the number of starts they've had in the series
-								row.append(s['position'])											# the driver's standing in the championship
-								row.append(s['avgFinish'])											# the average finish position
-								avginc = "%.0f" % float(int(s['incidents']) // int(s['starts']))	# average incidents per race
+								# sweet it is!
+								series_stats = True		
+								# the number of starts they've had in the series											
+								row.append(s['starts'])	
+								# the driver's standing in the championship											
+								row.append(s['position'])		
+								# the average finish position									
+								row.append(s['avgFinish'])		
+								# average incidents per race									
+								avginc = "%.0f" % float(int(s['incidents']) // int(s['starts']))	
 								row.append(avginc)
 						
 						# if we can't get this driver's stats for this series, blank out these cols in their row
@@ -149,14 +172,25 @@ if ir.startup():
 					# right, lets add the row to our table
 					tab.add_row(row)
 					
-					ir_total[drv['CarPath'][:3]] += int(drv['IRating'])		# add this driver's iR to the total for their vehicle
-					irs[drv['CarPath'][:3]].append(int(drv['IRating']))		# append this driver's iR to the list for their vehicle
-					drv_count[drv['CarPath'][:3]] += 1						# driver count for this car
-					if count > 1 and not prev_car == drv['CarPath'][:3]:	# if this isn't our first driver, is this car different from the last one?
-						mc = True											# oh it is, then this is a multiclass race!
-					prev_car = drv['CarPath'][:3]							# previous car is what the current car was, because we're done with this guy
+					# add this driver's iR to the total for their vehicle
+					ir_total[drv['CarPath'][:3]] += int(drv['IRating'])	
+					
+					# append this driver's iR to the list for their vehicle	
+					irs[drv['CarPath'][:3]].append(int(drv['IRating']))		
+					
+					# driver count for this car
+					drv_count[drv['CarPath'][:3]] += 1	
+								
+					# if this isn't our first driver, is this car different from the last one?		
+					if count > 1 and not prev_car == drv['CarPath'][:3]:
+						# oh it is, then this is a multiclass race!	
+						mc = True			
+					
+					# previous car is what the current car was, because we're done with this guy								
+					prev_car = drv['CarPath'][:3]							
 
-			os.system("mode con lines=%s" % (count + 11))	# this sets the height of our window so it fits everything neatly
+			# this sets the height of our window so it fits everything neatly
+			os.system("mode con lines=%s" % (count + 11))	
 			
 			# if my_car isn't set, we're a spectator so lets just set it to be what ever the final car was... just so we can test things
 			if my_car == "":
@@ -182,10 +216,12 @@ if ir.startup():
 			else:
 				sof_my_car_string = ""
 				pts_my_car_string = ""
-				
-			print("Approx SOF%s: %.0f" % (sof_my_car_string, sof)) 		# show the guestimated strength of field
 			
-			if ir['WeekendInfo']['WeekendOptions']['Unofficial'] == 0:	# only show points if this race went official
+			# show the guestimated strength of field
+			print("Approx SOF%s: %.0f" % (sof_my_car_string, sof)) 		
+			
+			# only show points if this race went official
+			if ir['WeekendInfo']['WeekendOptions']['Unofficial'] == 0:	
 				# some logic to not show points for positions which don't exist
 				if drv_count[my_car] > 4:
 					print("Approx PTS%s: 1st: %.0f | 2nd: %.0f | 3rd: %.0f | 4th: %.0f | 5th: %.0f" % (pts_my_car_string, winner_pts, (winner_pts - pts_diff), (winner_pts - (pts_diff * 2)), (winner_pts - (pts_diff * 3)), (winner_pts - (pts_diff * 4))))
@@ -198,7 +234,8 @@ if ir.startup():
 				else:
 					print("Approx PTS%s: 1st: %.0f" % (pts_my_car_string, winner_pts))
 			else:
-				print("Race is UNOFFICIAL, no PTS will be awarded")		# else tell them this isn't an official race, so no points for you
+				# else tell them this isn't an official race, so no points for you
+				print("Race is UNOFFICIAL, no PTS will be awarded")		
 				
 			print(" ")
 			
@@ -211,12 +248,15 @@ if ir.startup():
 				tab.align['SPos'] = 'r'
 				tab.align['AvgFin'] = 'r'
 				tab.align['AvgInc'] = 'r'
-				
+			
+			# if this isn't a multiclass event, don't show the car col
 			if not mc:
-				display.pop(1)	# if this isn't a multiclass event, don't show the car col
-				
-			table = tab.get_string(sortby='ID', fields=display)		# we sort by the CarIdx because its the grid order, but we don't show the ID
-			print(table)											# display our table and bask in the love and admiration of the user... awwwww yisssss!
+				display.pop(1)	
+			
+			# we sort by the CarIdx because its the grid order, but we don't show the ID
+			table = tab.get_string(sortby='ID', fields=display)		
+			# display our table and bask in the love and admiration of the user... awwwww yisssss!
+			print(table)											
 		else:
 			print("*** ERROR *** This is not a race session")
 			print("Race Info only generates details for races")
@@ -228,7 +268,8 @@ else:
 	print("Join the race session first, then run Race Info")
 
 print(" ")
-input("Press Enter to close ...") # go on, press it.... or click close... or alt-f4... whatever, I don't care
+# go on, press it.... or click close... or alt-f4... whatever, I don't care
+input("Press Enter to close ...") 
 
 
 
