@@ -84,12 +84,12 @@ if ir.startup():
 				irw.login(cfg.config['username'], cfg.config['password'], quiet=True)
 				# if this worked then we'll set up the full table
 				web_api = True
-				tab = PrettyTable(['ID', '#', 'Car', 'Name', 'License', 'iR', 'Races', 'SPos', 'AFin', 'AInc'])
-				display = ['#', 'Car', 'Name', 'License', 'iR', 'Races', 'SPos', 'AFin', 'AInc']
+				tab = PrettyTable(['ID', '#', 'Car', 'Name', 'Lic', 'iR', 'Races', 'SPos', 'AFin', 'AInc'])
+				display = ['#', 'Car', 'Name', 'Lic', 'iR', 'Races', 'SPos', 'AFin', 'AInc']
 			except:
 				# if it didn't work we'll set up only the minimal table
 				web_api = False
-				tab = PrettyTable(['ID', '#', 'Car', 'Name', 'License', 'iRating'])
+				tab = PrettyTable(['ID', '#', 'Car', 'Name', 'License', 'iR'])
 				display = ['#', 'Car', 'Name', 'License', 'iR']
 				print("Unable to log into iRacing.com")	
 			
@@ -99,7 +99,7 @@ if ir.startup():
 			# a dictionary for driver totals per car, default to 0	
 			drv_count = defaultdict(lambda: 0) 					
 			# a dictionary for all the iRatings
-			irs = dict() 										
+			irs = defaultdict(list) 										
 			# blank var for our vehicle
 			my_car = "" 										
 			# set multiclass to false until proven otherwise
@@ -123,15 +123,15 @@ if ir.startup():
 					name = drv['AbbrevName'].split(', ')
 					# if this isn't a multiclass race we have an extra 4 chars
 					if not mc:
-						# if the lastname is over 19 chars in length, trim it
-						name = "%s %s" % (name[1], name[0][:19]) 	
-						# pad all the names out to be 21 chars total
-						name = '{0: <21}'.format(name) 				
+						# if the lastname is over 20 chars in length, trim it
+						name = "%s %s" % (name[1], name[0][:20]) 	
+						# pad all the names out to be 22 chars total
+						name = '{0: <22}'.format(name) 				
 					else:
-						# if the lastname is over 13 chars in length, trim it
-						name = "%s %s" % (name[1], name[0][:13]) 	
-						# pad all the names out to be 15 chars total
-						name = '{0: <15}'.format(name) 				
+						# if the lastname is over 14 chars in length, trim it
+						name = "%s %s" % (name[1], name[0][:14]) 	
+						# pad all the names out to be 16 chars total
+						name = '{0: <16}'.format(name) 				
 						
 					# finally lets sort out any special chars so all names will be displayed correctly in the windows console
 					name = name.encode('windows-1252', errors='replace').decode('windows-1252', errors='replace')
@@ -145,13 +145,6 @@ if ir.startup():
 
 					# collect all the basic info up into a new row
 					row = ([int(drv['CarIdx']), drv['CarNumberRaw'], drv['CarPath'][:3].upper(), name, drv['LicString'], drv['IRating']])
-					
-					try:
-						# try to make a new list for this type of car
-						irs[drv['CarPath'][:3]] = list()		
-					except:
-						# if the car already has an entry, lets avoid an error
-						blah = 1								
 					
 					# if we do have a connection to the website, lets do all this extra stuff
 					if web_api :
@@ -214,8 +207,8 @@ if ir.startup():
 			
 			# if this is multiclass, lets say which car we're talking about
 			if mc:
-				sof_my_car_string = " of %s:" % my_car.upper()
-				pts_my_car_string = " for %s:" % my_car.upper()
+				sof_my_car_string = " of %s" % my_car.upper()
+				pts_my_car_string = " for %s" % my_car.upper()
 			else:
 				sof_my_car_string = ""
 				pts_my_car_string = ""
@@ -249,8 +242,8 @@ if ir.startup():
 			if web_api:
 				tab.align['Races'] = 'r'
 				tab.align['SPos'] = 'r'
-				tab.align['AvgFin'] = 'r'
-				tab.align['AvgInc'] = 'r'
+				tab.align['AFin'] = 'r'
+				tab.align['AInc'] = 'r'
 			
 			# if this isn't a multiclass event, don't show the car col
 			if not mc:
