@@ -4,113 +4,99 @@
             "CarIdx": 1,
             "ClassPosition": 0,
             "FastestLap": 0,
-            "FastestTime": 24.991,
+            "FastestTime": 56.461,
             "Position": 0
         },
         {
             "CarIdx": 2,
-            "ClassPosition": 1,
+            "ClassPosition": 0,
             "FastestLap": 0,
-            "FastestTime": 25.009,
+            "FastestTime": 56.807,
             "Position": 1
         },
         {
             "CarIdx": 3,
-            "ClassPosition": 2,
+            "ClassPosition": 1,
             "FastestLap": 0,
-            "FastestTime": 25.047,
+            "FastestTime": 58.024,
             "Position": 2
         },
         {
             "CarIdx": 4,
-            "ClassPosition": 3,
+            "ClassPosition": 2,
             "FastestLap": 0,
-            "FastestTime": 25.093,
+            "FastestTime": 58.296,
             "Position": 3
         },
         {
             "CarIdx": 5,
-            "ClassPosition": 4,
+            "ClassPosition": 1,
             "FastestLap": 0,
-            "FastestTime": 25.114,
+            "FastestTime": 0.0,
             "Position": 4
         },
         {
             "CarIdx": 6,
-            "ClassPosition": 5,
+            "ClassPosition": 2,
             "FastestLap": 0,
-            "FastestTime": 25.117,
+            "FastestTime": 0.0,
             "Position": 5
         },
         {
             "CarIdx": 7,
-            "ClassPosition": 6,
+            "ClassPosition": 3,
             "FastestLap": 0,
-            "FastestTime": 25.204,
+            "FastestTime": 0.0,
             "Position": 6
         },
         {
             "CarIdx": 8,
-            "ClassPosition": 7,
+            "ClassPosition": 4,
             "FastestLap": 0,
-            "FastestTime": 25.253,
+            "FastestTime": 0.0,
             "Position": 7
         },
         {
             "CarIdx": 9,
-            "ClassPosition": 8,
+            "ClassPosition": 5,
             "FastestLap": 0,
-            "FastestTime": 25.354,
+            "FastestTime": 0.0,
             "Position": 8
         },
         {
             "CarIdx": 10,
-            "ClassPosition": 9,
+            "ClassPosition": 6,
             "FastestLap": 0,
-            "FastestTime": 25.356,
+            "FastestTime": 0.0,
             "Position": 9
         },
         {
             "CarIdx": 11,
-            "ClassPosition": 10,
+            "ClassPosition": 7,
             "FastestLap": 0,
-            "FastestTime": 25.446,
+            "FastestTime": 0.0,
             "Position": 10
         },
         {
             "CarIdx": 12,
-            "ClassPosition": 11,
+            "ClassPosition": 8,
             "FastestLap": 0,
             "FastestTime": 0.0,
             "Position": 11
         },
         {
             "CarIdx": 13,
-            "ClassPosition": 12,
+            "ClassPosition": 9,
             "FastestLap": 0,
             "FastestTime": 0.0,
             "Position": 12
         },
         {
             "CarIdx": 14,
-            "ClassPosition": 13,
+            "ClassPosition": 10,
             "FastestLap": 0,
             "FastestTime": 0.0,
             "Position": 13
-        },
-        {
-            "CarIdx": 15,
-            "ClassPosition": 14,
-            "FastestLap": 0,
-            "FastestTime": 0.0,
-            "Position": 14
-        },
-        {
-            "CarIdx": 16,
-            "ClassPosition": 15,
-            "FastestLap": 0,
-            "FastestTime": 0.0,
-            "Position": 15
         }
     ]
 }

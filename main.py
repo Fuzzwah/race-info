@@ -100,8 +100,6 @@ if ir.startup():
 			drv_count = defaultdict(lambda: 0) 					
 			# a dictionary for all the iRatings
 			irs = dict() 										
-			# we do a check against this later
-			prev_car = "" 										
 			# blank var for our vehicle
 			my_car = "" 										
 			# set multiclass to false until proven otherwise
@@ -115,13 +113,26 @@ if ir.startup():
 				if drv['CarNumberRaw'] > 0:
 					# increase our total driver count by one
 					count += 1 							
+								
+					# do we have more than 1 car class?		
+					if ir['WeekendInfo']['NumCarClasses'] > 1:
+						# oh it is, then this is a multiclass race!	
+						mc = True		
+							
 					# AbbrevName's are LastName, FirstInitial		
-					name = drv['AbbrevName'].split(', ') 		
-					# if the lastname is over 15 chars in length, trim it
-					name = "%s %s" % (name[1], name[0][:15]) 	
-					# pad all the names out to be 17 chars total
-					name = '{0: <17}'.format(name) 				
-					
+					name = drv['AbbrevName'].split(', ')
+					# if this isn't a multiclass race we have an extra 4 chars
+					if not mc:
+						# if the lastname is over 19 chars in length, trim it
+						name = "%s %s" % (name[1], name[0][:19]) 	
+						# pad all the names out to be 21 chars total
+						name = '{0: <21}'.format(name) 				
+					else:
+						# if the lastname is over 13 chars in length, trim it
+						name = "%s %s" % (name[1], name[0][:13]) 	
+						# pad all the names out to be 15 chars total
+						name = '{0: <15}'.format(name) 				
+						
 					# finally lets sort out any special chars so all names will be displayed correctly in the windows console
 					name = name.encode('windows-1252', errors='replace').decode('windows-1252', errors='replace')
 					
@@ -133,7 +144,7 @@ if ir.startup():
 						name = ">%s<" % name[:15]				
 
 					# collect all the basic info up into a new row
-					row = ([int(drv['CarIdx']), drv['CarNumberRaw'], drv['CarPath'][:3].uppercase, name, drv['LicString'], drv['IRating']])
+					row = ([int(drv['CarIdx']), drv['CarNumberRaw'], drv['CarPath'][:3].upper(), name, drv['LicString'], drv['IRating']])
 					
 					try:
 						# try to make a new list for this type of car
@@ -180,21 +191,13 @@ if ir.startup():
 					
 					# driver count for this car
 					drv_count[drv['CarPath'][:3]] += 1	
-								
-					# if this isn't our first driver, is this car different from the last one?		
-					if count > 1 and not prev_car == drv['CarPath'][:3]:
-						# oh it is, then this is a multiclass race!	
-						mc = True			
 					
-					# previous car is what the current car was, because we're done with this guy								
-					prev_car = drv['CarPath'][:3]							
-
 			# this sets the height of our window so it fits everything neatly
 			os.system("mode con lines=%s" % (count + 11))	
 			
 			# if my_car isn't set, we're a spectator so lets just set it to be what ever the final car was... just so we can test things
 			if my_car == "":
-				my_car = prev_car
+				my_car = drv['CarPath'][:3]
 			
 			# strength of field math: we take the average and add it to the median and divide by 2 and we seem to get close enough
 			sof = float(((int(ir_total[my_car]) / int(drv_count[my_car])) + int(median(irs[my_car]))) / 2)
@@ -211,8 +214,8 @@ if ir.startup():
 			
 			# if this is multiclass, lets say which car we're talking about
 			if mc:
-				sof_my_car_string = " of %s:" % my_car.uppercase
-				pts_my_car_string = " for %s:" % my_car.uppercase
+				sof_my_car_string = " of %s:" % my_car.upper()
+				pts_my_car_string = " for %s:" % my_car.upper()
 			else:
 				sof_my_car_string = ""
 				pts_my_car_string = ""
