@@ -124,14 +124,14 @@ if ir.startup():
 					# if this isn't a multiclass race we have an extra 4 chars
 					if not mc:
 						# if the lastname is over 20 chars in length, trim it
-						name = "%s %s" % (name[1], name[0][:20]) 	
+						name = "%s %s" % (name[1][:1], name[0][:20]) 	
 						# pad all the names out to be 22 chars total
 						name = '{0: <22}'.format(name) 				
 					else:
-						# if the lastname is over 14 chars in length, trim it
-						name = "%s %s" % (name[1], name[0][:14]) 	
-						# pad all the names out to be 16 chars total
-						name = '{0: <16}'.format(name) 				
+						# if the lastname is over 15 chars in length, trim it
+						name = "%s %s" % (name[1][:1], name[0][:15]) 	
+						# pad all the names out to be 17 chars total
+						name = '{0: <17}'.format(name) 				
 						
 					# finally lets sort out any special chars so all names will be displayed correctly in the windows console
 					name = name.encode('windows-1252', errors='replace').decode('windows-1252', errors='replace')

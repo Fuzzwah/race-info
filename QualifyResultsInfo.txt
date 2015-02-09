@@ -4,113 +4,64 @@
             "CarIdx": 1,
             "ClassPosition": 0,
             "FastestLap": 0,
-            "FastestTime": 115.25,
+            "FastestTime": 0.0,
             "Position": 0
         },
         {
             "CarIdx": 2,
             "ClassPosition": 1,
             "FastestLap": 0,
-            "FastestTime": 115.75,
+            "FastestTime": 0.0,
             "Position": 1
         },
         {
             "CarIdx": 3,
             "ClassPosition": 2,
             "FastestLap": 0,
-            "FastestTime": 116.978,
+            "FastestTime": 0.0,
             "Position": 2
         },
         {
             "CarIdx": 4,
             "ClassPosition": 3,
             "FastestLap": 0,
-            "FastestTime": 117.201,
+            "FastestTime": 0.0,
             "Position": 3
         },
         {
             "CarIdx": 5,
             "ClassPosition": 4,
             "FastestLap": 0,
-            "FastestTime": 117.579,
+            "FastestTime": 0.0,
             "Position": 4
         },
         {
             "CarIdx": 6,
             "ClassPosition": 5,
             "FastestLap": 0,
-            "FastestTime": 117.647,
+            "FastestTime": 0.0,
             "Position": 5
         },
         {
             "CarIdx": 7,
             "ClassPosition": 6,
             "FastestLap": 0,
-            "FastestTime": 118.143,
+            "FastestTime": 0.0,
             "Position": 6
         },
         {
             "CarIdx": 8,
-            "ClassPosition": 7,
+            "ClassPosition": 0,
             "FastestLap": 0,
-            "FastestTime": 118.399,
+            "FastestTime": 0.0,
             "Position": 7
         },
         {
             "CarIdx": 9,
-            "ClassPosition": 8,
+            "ClassPosition": 1,
             "FastestLap": 0,
             "FastestTime": 0.0,
             "Position": 8
-        },
-        {
-            "CarIdx": 10,
-            "ClassPosition": 9,
-            "FastestLap": 0,
-            "FastestTime": 0.0,
-            "Position": 9
-        },
-        {
-            "CarIdx": 11,
-            "ClassPosition": 10,
-            "FastestLap": 0,
-            "FastestTime": 0.0,
-            "Position": 10
-        },
-        {
-            "CarIdx": 12,
-            "ClassPosition": 11,
-            "FastestLap": 0,
-            "FastestTime": 0.0,
-            "Position": 11
-        },
-        {
-            "CarIdx": 13,
-            "ClassPosition": 12,
-            "FastestLap": 0,
-            "FastestTime": 0.0,
-            "Position": 12
-        },
-        {
-            "CarIdx": 14,
-            "ClassPosition": 13,
-            "FastestLap": 0,
-            "FastestTime": 0.0,
-            "Position": 13
-        },
-        {
-            "CarIdx": 15,
-            "ClassPosition": 14,
-            "FastestLap": 0,
-            "FastestTime": 0.0,
-            "Position": 14
-        },
-        {
-            "CarIdx": 16,
-            "ClassPosition": 15,
-            "FastestLap": 0,
-            "FastestTime": 0.0,
-            "Position": 15
         }
     ]
 }
