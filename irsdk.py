@@ -272,7 +272,7 @@ class IRSDK:
                 f.write(self._shared_mem)
                 f.close()
             self._header = Header(self._shared_mem)
-            self.is_initialized = self._header.version == 1 and len(self._header.var_buf) > 0
+            self.is_initialized = self._header.version == 2 and len(self._header.var_buf) > 0
 
         return self.is_initialized
 

@@ -98,20 +98,17 @@ class iRWebStats:
 				r = self.__req(ct.URL_IRACING_LOGIN2, data,
 							   cookie=self.last_cookie, grab_cookie=True)
 
-				if 'irsso_members' in self.last_cookie:
-					ind = r.index('js_custid')
-					custid = int(r[ind + 11: r.index(';', ind)])
-					self.custid = custid
-					self.logged = True
-					if not quiet:
-						self.__get_irservice_info(r)
-					self.__save_cookie()
-					if not quiet:
-						print("Log in succesful")
-				else:
-					if not quiet:
-						print("Invalid Login (user: %s).\n\rPlease check your credentials" % (username))
-					self.logged = False
+
+				ind = r.index('js_custid')
+				custid = int(r[ind + 11: r.index(';', ind)])
+				self.custid = custid
+				self.logged = True
+				if not quiet:
+					self.__get_irservice_info(r)
+				self.__save_cookie()
+				if not quiet:
+					print("Log in succesful")
+
 
 		except Exception as e:
 			self.logged = False

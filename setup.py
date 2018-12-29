@@ -156,8 +156,6 @@ py2exe_options = dict(
 setup(name="name",
       # console based executables
       console=[main],
-      
-      includes = ['config', 'constants', 'decorator', 'iRWebStats', 'irsdk', 'prettytable', 'urllib3.request', 'util', 'simplejson'],
 
       # windows subsystem executables (no console)
       windows=[],
