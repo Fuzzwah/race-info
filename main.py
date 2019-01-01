@@ -11,12 +11,11 @@ from collections import defaultdict
 import argparse
 from ascii_graph import Pyasciigraph
 from multi_elo import EloPlayer, calc_new_elos
-from itertools import permutations
 from numpy import digitize, array, asscalar, float64, argwhere, unique, bincount
-from random import shuffle
+from random import sample
 from operator import attrgetter
-from datetime import datetime
-from math import factorial
+from math import factorial, floor
+from progressbar import ProgressBar, progressbar
 
 # set up our command line option for debugging
 parser = argparse.ArgumentParser()
@@ -41,24 +40,6 @@ def median(mylist):
 	if not length % 2:
 		return (sorts[length // 2] + sorts[length // 2 - 1]) / 2.0
 	return sorts[length // 2]
-
-
-def score(pos, compet, elos):
-	posiR= [element['elo'] for element in elos if element['place'] == pos][0]
-	competiR = [element['elo'] for element in elos if element['place'] == compet][0]
-	return ((1-exp(-posiR/denom))*(exp(-competiR/denom)))/((1-exp(-competiR/denom))*(exp(-posiR/denom))+(1-exp(-posiR/denom))*(exp(-competiR/denom)))
-
-
-def fudge(place, elos):
-	return ((len(elos))/2-place)/100
-
-
-def irDelta(place, elos):
-	return (len(elos)-place-sum(map(lambda c: score(place, c, elos), range(1, len(elos)+1)))-0.5-fudge(place, elos))*200/len(elos)
-
-
-def calc_deltas(elos):
-	return [irDelta(elo['place'], elos) for elo in elos]
 
 
 def main():
@@ -108,20 +89,21 @@ def main():
 					json.dump(ir['SessionInfo'], open("SessionInfo.txt",'w'), sort_keys=True, indent=4, separators=(',', ': '))
 					json.dump(ir['WeekendInfo'], open("WeekendInfo.txt",'w'), sort_keys=True, indent=4, separators=(',', ': '))
 					json.dump(ir['QualifyResultsInfo'], open("QualifyResultsInfo.txt",'w'), sort_keys=True, indent=4, separators=(',', ': '))
+					json.dump(ir['SessionInfo'], open("SessionInfo.txt",'w'), sort_keys=True, indent=4, separators=(',', ': '))
 					json.dump(ir['DriverInfo'], open("DriverInfo.txt",'w'), sort_keys=True, indent=4, separators=(',', ': '))
 
 				try:
 					# let the user know we're connecting to the website
 					print("       Please wait, connecting to iracing.com to retrieve driver data")
-					irw.login(cfg.config['username'], cfg.config['password'])
+					irw.login(cfg.config['username'], cfg.config['password'], quiet=True)
 					# if this worked then we'll set up the full table
 					web_api = True
-					tab = PrettyTable(['ID', '#', 'Car', 'Name', 'Lic', 'iR', 'Races', 'SPos', 'AFin', 'AInc'])
+					tab = PrettyTable(['ID', '#', 'Car', 'Name', 'Lic', 'iR', 'Races', 'SPos', 'AFin', 'AInc'], hrules=1)
 					display = ['#', 'Car', 'Name', 'Lic', 'iR', 'Races', 'SPos', 'AFin', 'AInc', 'iRDelta']
 				except:
 					# if it didn't work we'll set up only the minimal table
 					web_api = False
-					tab = PrettyTable(['ID', '#', 'Car', 'Name', 'License', 'iR'])
+					tab = PrettyTable(['ID', '#', 'Car', 'Name', 'License', 'iR'], hrules=1)
 					display = ['#', 'Car', 'Name', 'License', 'iR', 'iRDelta']
 					print("Unable to log into iRacing.com")
 
@@ -151,8 +133,8 @@ def main():
 							# oh it is, then this is a multiclass race!
 							mc = True
 
-						nameParts = drv["UserName"].split(' ')
-						name = [nameParts[-1], nameParts[0]]
+						# AbbrevName's are LastName, FirstInitial
+						name = drv['AbbrevName'].split(', ')
 						# if this isn't a multiclass race we have an extra 4 chars
 						if not mc:
 							# if the lastname is over 20 chars in length, trim it
@@ -168,174 +150,99 @@ def main():
 						# finally lets sort out any special chars so all names will be displayed correctly in the windows console
 						name = name.encode('windows-1252', errors='replace').decode('windows-1252', errors='replace')
 
+						# is this driver our user?
+						if irw.custid == drv['UserID']:
+							# then this is their car type
+							my_car = drv['CarPath'][:3]
+							# wack > < around their name to highlight it
+							name = ">%s<" % name[:15]
 
-# check if the local API can talk to the game, ie: is iRacing running
-if ir.startup():
-	# check if there is more than one session, ie a race
-	if len(ir['SessionInfo']['Sessions']) > 1:
-		# check if the 2nd or 3rd (for series which have qualy, warmup then race) session is a race session
-		if ir['SessionInfo']['Sessions'][1]['SessionType'] == 'Race' or ir['SessionInfo']['Sessions'][2]['SessionType'] == 'Race':
-			# let the user know if we're in debug mode and dump the info files
-			if debug:
-				print("                                                                               ")
-				print("                               *** DEBUG ON ***                                ")
-				print("                           Dumping info to text files                          ")
-				print("                                                                               ")
-				json.dump(ir['SessionInfo'], open("SessionInfo.txt",'w'), sort_keys=True, indent=4, separators=(',', ': '))
-				json.dump(ir['WeekendInfo'], open("WeekendInfo.txt",'w'), sort_keys=True, indent=4, separators=(',', ': '))
-				json.dump(ir['QualifyResultsInfo'], open("QualifyResultsInfo.txt",'w'), sort_keys=True, indent=4, separators=(',', ': '))
-				json.dump(ir['SessionInfo'], open("SessionInfo.txt",'w'), sort_keys=True, indent=4, separators=(',', ': '))
-				json.dump(ir['DriverInfo'], open("DriverInfo.txt",'w'), sort_keys=True, indent=4, separators=(',', ': '))
+						# collect all the basic info up into a new row
+						row = ([int(drv['CarIdx']), drv['CarNumberRaw'], drv['CarPath'][:3].upper(), name, drv['LicString'], drv['IRating']])
 
-			try:
-				# let the user know we're connecting to the website
-				print("       Please wait, connecting to iracing.com to retrieve driver data")
-				irw.login(cfg.config['username'], cfg.config['password'], quiet=True)
-				# if this worked then we'll set up the full table
-				web_api = True
-				tab = PrettyTable(['ID', '#', 'Car', 'Name', 'Lic', 'iR', 'Races', 'SPos', 'AFin', 'AInc'], hrules=1)
-				display = ['#', 'Car', 'Name', 'Lic', 'iR', 'Races', 'SPos', 'AFin', 'AInc', 'iRDelta']
-			except:
-				# if it didn't work we'll set up only the minimal table
-				web_api = False
-				tab = PrettyTable(['ID', '#', 'Car', 'Name', 'License', 'iR'], hrules=1)
-				display = ['#', 'Car', 'Name', 'License', 'iR', 'iRDelta']
-				print("Unable to log into iRacing.com")	
-			
-			seriesid = ir['WeekendInfo']['SeriesID']
-			# a dictionary for iRating totals per car, default to 0
-			ir_total = defaultdict(lambda: 0) 				
-			# a dictionary for driver totals per car, default to 0	
-			drv_count = defaultdict(lambda: 0) 					
-			# a dictionary for all the iRatings
-			irs = defaultdict(list) 										
-			# blank var for our vehicle
-			my_car = "" 										
-			# set multiclass to false until proven otherwise
-			mc = False 											
-			# count of drivers, because the full list includes spectators and the pace car
-			count = 0 											
-			
-			# lets run through each driver in the race
-			for drv in ir['DriverInfo']['Drivers']:
-				# this checks that the driver isn't a spectator or the pace car, lol
-				if drv['CarNumberRaw'] > 0:
-					# increase our total driver count by one
-					count += 1 							
-								
-					# do we have more than 1 car class?		
-					if ir['WeekendInfo']['NumCarClasses'] > 1:
-						# oh it is, then this is a multiclass race!	
-						mc = True		
-							
-					# AbbrevName's are LastName, FirstInitial		
-					name = drv['AbbrevName'].split(', ')
-					# if this isn't a multiclass race we have an extra 4 chars
-					if not mc:
-						# if the lastname is over 20 chars in length, trim it
-						name = "%s %s" % (name[1][:1], name[0][:20]) 	
-						# pad all the names out to be 22 chars total
-						name = '{0: <22}'.format(name) 				
+						# if we do have a connection to the website, lets do all this extra stuff
+						if web_api :
+							# get the last 3 series this driver has raced in
+							drv_last_series = irw.last_series(drv['UserID'])
+							series_stats = False
+							for s in drv_last_series:
+								# is the series which this race is part of one of those 3?
+								if s['seriesID'] == seriesid and not series_stats:
+									# sweet it is!
+									series_stats = True
+									# the number of starts they've had in the series
+									row.append(s['starts'])
+									# the driver's standing in the championship
+									row.append(s['position'])
+									# the average finish position
+									row.append(s['avgFinish'])
+									# average incidents per race
+									avginc = "%.0f" % float(int(s['incidents']) // int(s['starts']))
+									row.append(avginc)
+
+							# if we can't get this driver's stats for this series, blank out these cols in their row
+							if not series_stats:
+								row.append('{0: <5}'.format(""))
+								row.append('{0: <5}'.format(""))
+								row.append('{0: <5}'.format(""))
+								row.append('{0: <5}'.format(""))
+
+						# right, lets add the row to our table
+						tab.add_row(row)
+
+						# add this driver's iR to the total for their vehicle
+						ir_total[drv['CarPath'][:3]] += int(drv['IRating'])
+
+						# append this driver's iR to the list for their vehicle
+						irs[drv['CarPath'][:3]].append(int(drv['IRating']))
+
+						# driver count for this car
+						drv_count[drv['CarPath'][:3]] += 1
+
+				# this sets the height of our window so it fits everything neatly
+				os.system("mode con lines=%s cols=%s" % (6*count + 11, 163))
+
+				# if my_car isn't set, we're a spectator so lets just set it to be what ever the final car was... just so we can test things
+				if my_car == "":
+					my_car = drv['CarPath'][:3]
+
+				# strength of field math: we take the average and add it to the median and divide by 2 and we seem to get close enough
+				sof = float(((int(ir_total[my_car]) / int(drv_count[my_car])) + int(median(irs[my_car]))) / 2)
+
+				# the sof divided by 16 gets us pretty damn close to the winner's championship points gain
+				winner_pts = sof / 16
+
+				# this works out how the points step down each finishing position
+				pts_diff = (winner_pts / (drv_count[my_car] - 1))
+
+				# lets clear our splash screen and please wait message because we're ready to display our awesome table!
+				os.system('cls' if os.name == 'nt' else 'clear')
+				print(" ")
+
+				# if this is multiclass, lets say which car we're talking about
+				if mc:
+					sof_my_car_string = " of %s" % my_car.upper()
+					pts_my_car_string = " for %s" % my_car.upper()
+				else:
+					sof_my_car_string = ""
+					pts_my_car_string = ""
+
+				# show the guestimated strength of field
+				print("Approx SOF%s: %.0f" % (sof_my_car_string, sof))
+
+				# only show points if this race went official
+				if ir['WeekendInfo']['WeekendOptions']['Unofficial'] == 0:
+					# some logic to not show points for positions which don't exist
+					if drv_count[my_car] > 4:
+						print("Approx PTS%s: 1st: %.0f | 2nd: %.0f | 3rd: %.0f | 4th: %.0f | 5th: %.0f" % (pts_my_car_string, winner_pts, (winner_pts - pts_diff), (winner_pts - (pts_diff * 2)), (winner_pts - (pts_diff * 3)), (winner_pts - (pts_diff * 4))))
+					elif drv_count[my_car] > 3:
+						print("Approx PTS%s: 1st: %.0f | 2nd: %.0f | 3rd: %.0f | 4th: %.0f" % (pts_my_car_string, winner_pts, (winner_pts - pts_diff), (winner_pts - (pts_diff * 2)), (winner_pts - (pts_diff * 3))))
+					elif drv_count[my_car] > 2:
+						print("Approx PTS%s: 1st: %.0f | 2nd: %.0f | 3rd: %.0f" % (pts_my_car_string, winner_pts, (winner_pts - pts_diff), (winner_pts - (pts_diff * 2))))
+					elif drv_count[my_car] > 1:
+						print("Approx PTS%s: 1st: %.0f | 2nd: %.0f" % (pts_my_car_string, winner_pts, (winner_pts - pts_diff)))
 					else:
-						# if the lastname is over 15 chars in length, trim it
-						name = "%s %s" % (name[1][:1], name[0][:15]) 	
-						# pad all the names out to be 17 chars total
-						name = '{0: <17}'.format(name) 				
-						
-					# finally lets sort out any special chars so all names will be displayed correctly in the windows console
-					name = name.encode('windows-1252', errors='replace').decode('windows-1252', errors='replace')
-					
-					# is this driver our user?
-					if irw.custid == drv['UserID']:		
-						# then this is their car type		
-						my_car = drv['CarPath'][:3]		
-						# wack > < around their name to highlight it		
-						name = ">%s<" % name[:15]				
-
-					# collect all the basic info up into a new row
-					row = ([int(drv['CarIdx']), drv['CarNumberRaw'], drv['CarPath'][:3].upper(), name, drv['LicString'], drv['IRating']])
-					
-					# if we do have a connection to the website, lets do all this extra stuff
-					if web_api :
-						# get the last 3 series this driver has raced in
-						drv_last_series = irw.last_series(drv['UserID'])
-						series_stats = False
-						for s in drv_last_series:
-							# is the series which this race is part of one of those 3?
-							if s['seriesID'] == seriesid and not series_stats:
-								# sweet it is!
-								series_stats = True		
-								# the number of starts they've had in the series											
-								row.append(s['starts'])	
-								# the driver's standing in the championship											
-								row.append(s['position'])		
-								# the average finish position									
-								row.append(s['avgFinish'])		
-								# average incidents per race									
-								avginc = "%.0f" % float(int(s['incidents']) // int(s['starts']))	
-								row.append(avginc)
-						
-						# if we can't get this driver's stats for this series, blank out these cols in their row
-						if not series_stats:
-							row.append('{0: <5}'.format(""))
-							row.append('{0: <5}'.format(""))
-							row.append('{0: <5}'.format(""))
-							row.append('{0: <5}'.format(""))
-					
-					# right, lets add the row to our table
-					tab.add_row(row)
-					
-					# add this driver's iR to the total for their vehicle
-					ir_total[drv['CarPath'][:3]] += int(drv['IRating'])	
-					
-					# append this driver's iR to the list for their vehicle	
-					irs[drv['CarPath'][:3]].append(int(drv['IRating']))		
-					
-					# driver count for this car
-					drv_count[drv['CarPath'][:3]] += 1	
-					
-			# this sets the height of our window so it fits everything neatly
-			os.system("mode con lines=%s cols=%s" % (4*count + 11, 162))	
-			
-			# if my_car isn't set, we're a spectator so lets just set it to be what ever the final car was... just so we can test things
-			if my_car == "":
-				my_car = drv['CarPath'][:3]
-			
-			# strength of field math: we take the average and add it to the median and divide by 2 and we seem to get close enough
-			sof = float(((int(ir_total[my_car]) / int(drv_count[my_car])) + int(median(irs[my_car]))) / 2)
-			
-			# the sof divided by 16 gets us pretty damn close to the winner's championship points gain
-			winner_pts = sof / 16
-			
-			# this works out how the points step down each finishing position
-			pts_diff = (winner_pts / (drv_count[my_car] - 1))
-			
-			# lets clear our splash screen and please wait message because we're ready to display our awesome table!
-			os.system('cls' if os.name == 'nt' else 'clear')
-			print(" ")
-			
-			# if this is multiclass, lets say which car we're talking about
-			if mc:
-				sof_my_car_string = " of %s" % my_car.upper()
-				pts_my_car_string = " for %s" % my_car.upper()
-			else:
-				sof_my_car_string = ""
-				pts_my_car_string = ""
-			
-			# show the guestimated strength of field
-			print("Approx SOF%s: %.0f" % (sof_my_car_string, sof)) 		
-			
-			# only show points if this race went official
-			if ir['WeekendInfo']['WeekendOptions']['Unofficial'] == 0:	
-				# some logic to not show points for positions which don't exist
-				if drv_count[my_car] > 4:
-					print("Approx PTS%s: 1st: %.0f | 2nd: %.0f | 3rd: %.0f | 4th: %.0f | 5th: %.0f" % (pts_my_car_string, winner_pts, (winner_pts - pts_diff), (winner_pts - (pts_diff * 2)), (winner_pts - (pts_diff * 3)), (winner_pts - (pts_diff * 4))))
-				elif drv_count[my_car] > 3:
-					print("Approx PTS%s: 1st: %.0f | 2nd: %.0f | 3rd: %.0f | 4th: %.0f" % (pts_my_car_string, winner_pts, (winner_pts - pts_diff), (winner_pts - (pts_diff * 2)), (winner_pts - (pts_diff * 3))))
-				elif drv_count[my_car] > 2:
-					print("Approx PTS%s: 1st: %.0f | 2nd: %.0f | 3rd: %.0f" % (pts_my_car_string, winner_pts, (winner_pts - pts_diff), (winner_pts - (pts_diff * 2))))
-				elif drv_count[my_car] > 1:
-					print("Approx PTS%s: 1st: %.0f | 2nd: %.0f" % (pts_my_car_string, winner_pts, (winner_pts - pts_diff)))
+						print("Approx PTS%s: 1st: %.0f" % (pts_my_car_string, winner_pts))
 				else:
 					# else tell them this isn't an official race, so no points for you
 					print("Race is UNOFFICIAL, no PTS will be awarded")
@@ -357,38 +264,48 @@ if ir.startup():
 				if not mc:
 					display.pop(1)
 
-				# Below we're using past event results to determine value of K to use later
-				global myPos
-				global myiRold
-				global actualiRDelta
-				global placements
+				# For every position you could place, generate a histogram showing
+				# likelihood of diff iR shifts based on the drivers in the session
+				# K factor for Elo computation is determined empirically based on
+				# a handful of Event Results to be about 9.4 (possibly down to 6.5)
+				Kfactor = 9.417917917917919
+				placements = set()
 
-				custIds = [drv['UserID']
-						   for drv in ir['DriverInfo']['Drivers'] if drv['UserName'] != 'Pace Car']
-				iRatings = [drv['IRating']
-							for drv in ir['DriverInfo']['Drivers'] if drv['UserName'] != 'Pace Car']
+				# TODO: multithreading
+				cap = min(factorial(10-floor(count/10)), factorial(count))
+				with ProgressBar(max_value=cap, prefix="Building scenarios:") as bar:
+					while len(placements) < cap:
+						placements.add(tuple(sample(range(count), count)))
+						bar.update(len(placements))
+				custIds = [drv['UserID'] for drv in ir['DriverInfo']['Drivers']]
+				iRatings = [drv['IRating'] for drv in ir['DriverInfo']['Drivers']]
 				iRmap = dict(zip(custIds, iRatings))
 				iRDelta = {}
 
-				with ProgressBar(max_value=nPlacements, prefix="Building scenarios:") as bar:
-					while len(placements) < nPlacements:
-						placements.add(tuple(choice(range(1,len(iRatings)+1), size=len(iRatings), replace=False, p=normalize(sorted(iRatings, reverse=True)))))
-						bar.update(len(placements))
-
-				for finPos in progressbar(range(1, count+1), prefix="Calculate irDelta:"):
-					myEstdeltas = []
-					for placement in placements:
-						elos = [{'place': idx, 'elo': iRatings[ii]}
+				for finPos in range(1, count+1):
+					myEstElo_deltas = []
+					for placement in progressbar(placements, prefix="Position {}:".format(finPos)):
+						elos = [EloPlayer(place=idx+1, elo=iRatings[ii])
 								for (idx, ii) in zip(placement, range(0, count))]
-						elos = sorted(elos, key=itemgetter('place'))
-						elos_ratings = [elo['elo'] for elo in elos]
-						myEstEloIdx = elos_ratings.index(iRmap[int(irw.custid)])
-						elos_places = [elo['place'] for elo in elos]
+						elos = sorted(elos, key=attrgetter('place'))
+						elos_ratings = [elo for (place, elo) in elos]
+						myEstEloIdx = asscalar(
+							argwhere(array(elos_ratings) == iRmap[irw.custid]))
+						elos_places = [place for (place, elo) in elos]
 						if(finPos == elos_places[myEstEloIdx]):
-							estDeltas = calc_deltas(elos)
-							myEstdeltas.append(estDeltas[myEstEloIdx])
+							est_elos = array(calc_new_elos(
+								elos, k=Kfactor), dtype=float64)
+							myEstElo = asscalar(est_elos[myEstEloIdx])
+							myEstElo_delta = myEstElo - iRmap[irw.custid]
+							myEstElo_deltas.append(myEstElo_delta)
 
-					iRDelta[finPos] = int(sum(myEstdeltas)/len(myEstdeltas)) if len(myEstdeltas) else float('nan')
+					bins = unique(myEstElo_deltas)
+					bincounts = bincount(digitize(myEstElo_deltas, bins) - 1)
+					hist = zip(map(str, bins), bincounts)
+
+					graph = Pyasciigraph(human_readable='si')
+					iRDelta[finPos] = os.linesep.join(
+						graph.graph(data=hist))
 
 				tab.add_column("iRDelta", list(iRDelta.values()))
 
@@ -397,71 +314,8 @@ if ir.startup():
 				# display our table and bask in the love and admiration of the user... awwwww yisssss!
 				print(table)
 			else:
-				# else tell them this isn't an official race, so no points for you
-				print("Race is UNOFFICIAL, no PTS will be awarded")		
-				
-			print(" ")
-			
-			# set some nice alignments for our cols
-			tab.align['Name'] = 'l'
-			tab.align['#'] = 'r'
-			tab.align['iR'] = 'r'
-			tab.align['iRDelta'] = 'l'
-			if web_api:
-				tab.align['Races'] = 'r'
-				tab.align['SPos'] = 'r'
-				tab.align['AFin'] = 'r'
-				tab.align['AInc'] = 'r'
-			
-			# if this isn't a multiclass event, don't show the car col
-			if not mc:
-				display.pop(1)	
-
-			# For every position you could place, generate a histogram showing
-			# likelihood of diff iR shifts based on the drivers in the session
-			# K factor for Elo computation is determined empirically based on
-			# a handful of Event Results to be about 9.4 (possibly down to 6.5)
-			Kfactor = 9.417917917917919
-			placements = list(permutations(range(count), count))
-			shuffle(placements)
-			custIds = [drv['UserID'] for drv in ir['DriverInfo']['Drivers']]
-			iRatings = [drv['IRating'] for drv in ir['DriverInfo']['Drivers']]
-			iRmap = dict(zip(custIds, iRatings))
-			iRDelta = {}
-
-			for finPos in range(1, count+1):
-				myEstElo_deltas = []
-				# Cap the runtime to that of 10 drivers... use random sampling
-				# This is about 15 minutes on an i7-7700k. TODO: multithreading
-				for placement in placements[:factorial(10)]:
-					elos = [EloPlayer(place=idx+1, elo=iRatings[ii])
-							for (idx, ii) in zip(placement, range(0, count))]
-					elos = sorted(elos, key=attrgetter('place'))
-					elos_ratings = [elo for (place, elo) in elos]
-					myEstEloIdx = asscalar(
-						argwhere(array(elos_ratings) == iRmap[irw.custid]))
-					elos_places = [place for (place, elo) in elos]
-					if(finPos == elos_places[myEstEloIdx]):
-						est_elos = array(calc_new_elos(
-							elos, k=Kfactor), dtype=float64)
-						myEstElo = asscalar(est_elos[myEstEloIdx])
-						myEstElo_delta = myEstElo - iRmap[irw.custid]
-						myEstElo_deltas.append(myEstElo_delta)
-
-				bins = unique(myEstElo_deltas)
-				bincounts = bincount(digitize(myEstElo_deltas, bins) - 1)
-				hist = zip(map(str, bins), bincounts)
-
-				graph = Pyasciigraph(human_readable='si')
-				iRDelta[finPos] = os.linesep.join(
-					graph.graph(data=hist))
-
-			tab.add_column("iRDelta", list(iRDelta.values()))
-
-			# we sort by the CarIdx because its the grid order, but we don't show the ID
-			table = tab.get_string(sortby='ID', fields=display)		
-			# display our table and bask in the love and admiration of the user... awwwww yisssss!
-			print(table)											
+				print("*** ERROR *** This is not a race session")
+				print("Race Info only generates details for races")
 		else:
 			print("*** ERROR *** This is not a race session")
 			print("Race Info only generates details for races")
@@ -469,6 +323,10 @@ if ir.startup():
 		print("*** ERROR *** iRacing is not running")
 		print("Join the race session first, then run Race Info")
 
+	print(" ")
+	# go on, press it.... or click close... or alt-f4... whatever, I don't care
+	input("Press Enter to close ...")
 
-if __name__ == "__main__":
+if __name__=="__main__":
 	main()
+
