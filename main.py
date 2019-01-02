@@ -133,8 +133,8 @@ def main():
 							# oh it is, then this is a multiclass race!
 							mc = True
 
-						# AbbrevName's are LastName, FirstInitial
-						name = drv['AbbrevName'].split(', ')
+						nameParts = drv["UserName"].split(' ')
+						name = [nameParts[-1], nameParts[0]]
 						# if this isn't a multiclass race we have an extra 4 chars
 						if not mc:
 							# if the lastname is over 20 chars in length, trim it
