@@ -348,9 +348,7 @@ def main():
                         irDelta, [5.4], iRatings, options={'eps': 0.5})
                     kopts.append(kopt.x[0])
 
-                print("Optimal Ks: {}{}".format(kopts, os.linesep))
                 Kfactor = asscalar(mean(kopts))
-                print("Average optimal k: {}{}".format(Kfactor, os.linesep))
 
                 # Now use that value of k
                 cap = min(factorial(10-floor(count/10)), factorial(count))
