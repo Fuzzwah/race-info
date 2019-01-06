@@ -6,7 +6,7 @@ import sys
 import json
 from pyirsdk import irsdk
 from prettytable import PrettyTable
-sys.path.append(os.path.join((os.path.dirname(os.path.abspath(__file__))),'ir_webstats'))
+sys.path.append(os.path.join((os.path.dirname(os.path.abspath(__file__))), 'ir_webstats'))
 from ir_webstats.client import iRWebStats
 import config as cfg
 from collections import defaultdict
@@ -319,7 +319,7 @@ def main():
                 if not mc:
                     display.pop(1)
 
-                    # Below we're using past event results to determine value of K to use later
+                # Below we're using past event results to determine value of K to use later
                 global myPos
                 global myiRold
                 global actualiRDelta
@@ -328,28 +328,31 @@ def main():
                 subsessions = [race["subsessionID"]
                                for race in irw.lastrace_stats(irw.custid)]
 
-                kopts = []
-                for subsession in progressbar(subsessions, prefix="Determining Kfactor:"):
-                    raceResults = irw.event_results(subsession)[-1]
-                    iRatings = [int(drv["Old iRating"]) for drv in raceResults]
-                    myiRold = [int(drv["Old iRating"])
-                               for drv in raceResults if irw.custid == drv["Cust ID"]][0]
+                with ProgressBar(max_value=1, prefix="Determining K:", redirect_stdout=False) as bar:
+                    for subsession in subsessions:
+                        raceResults = irw.event_results(subsession)[-1]
+                        iRatings = [int(drv["Old iRating"]) for drv in raceResults]
+                        myiRold = [int(drv["Old iRating"])
+                                   for drv in raceResults if irw.custid == drv["Cust ID"]][0]
 
-                    # don't process this subsession if someone else has my iRating
-                    if len(argwhere(array(iRatings) == myiRold)) > 1:
-                        continue
+                        # don't process this subsession if someone else has my iRating
+                        if len(argwhere(array(iRatings) == myiRold)) > 1:
+                            continue
 
-                    myiRnew = [int(drv["New iRating"])
-                               for drv in raceResults if irw.custid == drv["Cust ID"]][0]
-                    actualiRDelta = myiRnew - myiRold
-                    myPos = [int(drv["Fin Pos"])
-                             for drv in raceResults if irw.custid == drv["Cust ID"]][0]
-                    kopt = minimize(
-                        irDelta, [5.4], iRatings, options={'eps': 0.5})
-                    kopts.append(kopt.x[0])
+                        myiRnew = [int(drv["New iRating"])
+                                   for drv in raceResults if irw.custid == drv["Cust ID"]][0]
+                        actualiRDelta = myiRnew - myiRold
+                        myPos = [int(drv["Fin Pos"])
+                                 for drv in raceResults if irw.custid == drv["Cust ID"]][0]
+                        kopt = minimize(
+                            irDelta, [16.0], iRatings, options={'disp': False, 'eps': 0.5})
+                        Kfactor = asscalar(kopt.x[0])
+                        if abs(Kfactor - 16.0) < 1.0:  # don't trust results close to initial guess
+                            continue
+                        bar.update(1)
+                        break
 
-                Kfactor = asscalar(mean(kopts))
-
+                print('Using K = {}'.format(Kfactor))
                 # Now use that value of k
                 cap = min(factorial(10-floor(count/10)), factorial(count))
                 with ProgressBar(max_value=cap, prefix="Building scenarios:") as bar:
@@ -363,9 +366,9 @@ def main():
                 iRmap = dict(zip(custIds, iRatings))
                 iRDelta = {}
 
-                for finPos in range(1, count+1):
+                for finPos in progressbar(range(1, count+1), prefix="Calculate irDelta:"):
                     myEstElo_deltas = []
-                    for placement in progressbar(placements, prefix="Position {}:".format(finPos)):
+                    for placement in placements:
                         elos = [EloPlayer(place=idx+1, elo=iRatings[ii])
                                 for (idx, ii) in zip(placement, range(0, count))]
                         elos = sorted(elos, key=attrgetter('place'))
