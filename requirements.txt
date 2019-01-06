@@ -1,6 +1,7 @@
 requests
 PyYAML
 configobj
-ascii-graph
 numpy
+scipy
 progressbar2
+prettytable
