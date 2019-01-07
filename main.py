@@ -142,14 +142,14 @@ def main():
                     # if this worked then we'll set up the full table
                     web_api = True
                     tab = PrettyTable(
-                        ['ID', '#', 'Car', 'Name', 'Lic', 'iR', 'Races', 'SPos', 'AFin', 'AInc'], hrules=1)
+                        ['ID', '#', 'Car', 'Name', 'Lic', 'iR', 'Races', 'SPos', 'AFin', 'AInc'])
                     display = ['#', 'Car', 'Name', 'Lic', 'iR',
                                'Races', 'SPos', 'AFin', 'AInc', 'iRDelta']
                 except:
                     # if it didn't work we'll set up only the minimal table
                     web_api = False
                     tab = PrettyTable(
-                        ['ID', '#', 'Car', 'Name', 'License', 'iR'], hrules=1)
+                        ['ID', '#', 'Car', 'Name', 'License', 'iR'])
                     display = ['#', 'Car', 'Name', 'License', 'iR', 'iRDelta']
                     print("Unable to log into iRacing.com")
 
@@ -249,7 +249,7 @@ def main():
                         drv_count[drv['CarPath'][:3]] += 1
 
                 # this sets the height of our window so it fits everything neatly
-                os.system("mode con lines=%s" % (3 * count + 11))
+                os.system("mode con lines=%s" % (count + 15))
 
                 # if my_car isn't set, we're a spectator so lets just set it to be what ever the final car was... just so we can test things
                 if my_car == "":
@@ -383,7 +383,7 @@ def main():
                             myEstElo_delta = myEstElo - iRmap[int(irw.custid)]
                             myEstElo_deltas.append(myEstElo_delta)
 
-                    iRDelta[finPos] = asscalar(mean(myEstElo_deltas))
+                    iRDelta[finPos] = int(asscalar(mean(myEstElo_deltas)))
 
                 tab.add_column("iRDelta", list(iRDelta.values()))
 
