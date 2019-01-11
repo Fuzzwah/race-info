@@ -5,3 +5,4 @@ numpy
 scipy
 progressbar2
 prettytable
+multi-elo
