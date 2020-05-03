@@ -20,11 +20,8 @@ import re
 
 denom = 1600/log(2)
 
-myPos = int()
-myiRold = int()
-actualiRDelta = int()
-placements = set()
-nPlacements = 10e3
+scenarios = set()
+nScenarios = 10e3
 
 # set up our command line option for debugging
 parser = argparse.ArgumentParser()
@@ -51,22 +48,22 @@ def median(mylist):
 	return sorts[length // 2]
 
 
-def score(pos, compet, elos):
-	posiR= [element['elo'] for element in elos if element['place'] == pos][0]
-	competiR = [element['elo'] for element in elos if element['place'] == compet][0]
+def score(pos, compet, scenario):
+	posiR= [placement['iR'] for placement in scenario if placement['place'] == pos][0]
+	competiR = [placement['iR'] for placement in scenario if placement['place'] == compet][0]
 	return ((1-exp(-posiR/denom))*(exp(-competiR/denom)))/((1-exp(-competiR/denom))*(exp(-posiR/denom))+(1-exp(-posiR/denom))*(exp(-competiR/denom)))
 
 
-def fudge(place, elos):
-	return ((len(elos))/2-place)/100
+def fudge(place, scenario):
+	return ((len(scenario))/2-place)/100
 
 
-def irDelta(place, elos):
-	return (len(elos)-place-sum(map(lambda c: score(place, c, elos), range(1, len(elos)+1)))-0.5-fudge(place, elos))*200/len(elos)
+def ir_Delta(place, scenario):
+	return (len(scenario)-place-sum(map(lambda c: score(place, c, scenario), range(1, len(scenario)+1)))-0.5-fudge(place, scenario))*200/len(scenario)
 
 
-def calc_deltas(elos):
-	return [irDelta(elo['place'], elos) for elo in elos]
+def calc_deltas(scenario):
+	return [ir_Delta(placement['place'], scenario) for placement in scenario]
 
 
 def main():
@@ -297,12 +294,7 @@ def main():
 				if not mc:
 					display.pop(1)
 
-				# Below we're using past event results to determine value of K to use later
-				global myPos
-				global myiRold
-				global actualiRDelta
-				global placements
-
+				# Show the expected change in iRating for finishing in each position
 				custIds = [drv['UserID']
 						   for drv in ir['DriverInfo']['Drivers'] if drv['UserName'] != 'Pace Car']
 				iRatings = [drv['IRating']
@@ -310,24 +302,17 @@ def main():
 				iRmap = dict(zip(custIds, iRatings))
 				iRDelta = {}
 
-				with ProgressBar(max_value=nPlacements, prefix="Building scenarios:") as bar:
-					while len(placements) < nPlacements:
-						placements.add(tuple(choice(range(1,len(iRatings)+1), size=len(iRatings), replace=False, p=normalize(sorted(iRatings, reverse=True)))))
-						bar.update(len(placements))
+				with ProgressBar(max_value=nScenarios, prefix="Building scenarios:") as bar:
+					while len(scenarios) < nScenarios:
+						scenario = list(choice(range(1, len(iRatings) + 1), size=len(iRatings), replace=False, p=normalize(sorted(iRatings, reverse=True))))
+						scenario = [{'place': idx, 'iR': iRatings[ii]}
+								for (idx, ii) in zip(scenario, range(0, count))]
+						scenario = sorted(scenario, key=itemgetter('place'))
+						scenarios.add(tuple(frozenset(placement.items()) for placement in scenario))  # can't just add placement directly
+						bar.update(len(scenarios))
 
 				for finPos in progressbar(range(1, count+1), prefix="Calculate irDelta:"):
-					myEstdeltas = []
-					for placement in placements:
-						elos = [{'place': idx, 'elo': iRatings[ii]}
-								for (idx, ii) in zip(placement, range(0, count))]
-						elos = sorted(elos, key=itemgetter('place'))
-						elos_ratings = [elo['elo'] for elo in elos]
-						myEstEloIdx = elos_ratings.index(iRmap[int(irw.custid)])
-						elos_places = [elo['place'] for elo in elos]
-						if(finPos == elos_places[myEstEloIdx]):
-							estDeltas = calc_deltas(elos)
-							myEstdeltas.append(estDeltas[myEstEloIdx])
-
+					myEstdeltas = [calc_deltas([dict(placement) for placement in scenario])[finPos-1] for scenario in filter(lambda sc: dict(sc[finPos-1])['iR'] == iRmap[int(irw.custid)], scenarios)]
 					iRDelta[finPos] = int(sum(myEstdeltas)/len(myEstdeltas)) if len(myEstdeltas) else float('nan')
 
 				tab.add_column("iRDelta", list(iRDelta.values()))
