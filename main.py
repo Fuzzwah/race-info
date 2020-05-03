@@ -11,13 +11,14 @@ from ir_webstats.client import iRWebStats
 import config as cfg
 from collections import defaultdict
 import argparse
-from multi_elo import EloPlayer, calc_new_elos
-from numpy import array, asscalar, float64, argwhere, mean, repeat, square
-from math import exp
+from math import exp, log
 from numpy.random import choice
-from operator import attrgetter
+from operator import itemgetter
 from progressbar import ProgressBar, progressbar
-from scipy.optimize import minimize
+import requests
+import re
+
+denom = 1600/log(2)
 
 myPos = int()
 myiRold = int()
@@ -34,10 +35,11 @@ debug = False
 if args.debug:
 	debug = True
 
+
 def normalize(x):
 	x = [exp(i**.5) for i in x]
 	s = sum(x)
-	return [1e-301+float(i)/s for i in x]
+	return [float(i)/s for i in x]
 
 
 def median(mylist):
@@ -49,37 +51,25 @@ def median(mylist):
 	return sorts[length // 2]
 
 
-def irDelta(k, iRatings):
-	global myPos
-	global myiRold
-	global actualiRDelta
-
-	k = asscalar(k)
-	count = len(iRatings)
-	placements = set()
-
-	while len(placements) < nPlacements:
-		placements.add(tuple(choice(range(1, len(iRatings) + 1), size=len(iRatings), replace=False,
-									p=normalize(sorted(iRatings, reverse=True)))))
-
-	myEstElo_deltas = []
-	for placement in placements:
-		elos = [EloPlayer(place=idx, elo=iRatings[ii])
-				for (idx, ii) in zip(placement, range(0, count))]
-		elos = sorted(elos, key=attrgetter('place'))
-		elos_ratings = [elo for (place, elo) in elos]
-		myEstEloIdx = asscalar(argwhere(array(elos_ratings) == myiRold))
-		if myEstEloIdx == myPos:
-			est_elos = array(calc_new_elos(
-				elos, k=k), dtype=float64)
-			myEstElo = asscalar(est_elos[myEstEloIdx])
-			myEstElo_delta = myEstElo - myiRold
-			myEstElo_deltas.append(myEstElo_delta)
-
-	return (square(myEstElo_deltas - repeat(actualiRDelta, len(myEstElo_deltas)))).mean(axis=None)
+def score(pos, compet, elos):
+	posiR= [element['elo'] for element in elos if element['place'] == pos][0]
+	competiR = [element['elo'] for element in elos if element['place'] == compet][0]
+	return ((1-exp(-posiR/denom))*(exp(-competiR/denom)))/((1-exp(-competiR/denom))*(exp(-posiR/denom))+(1-exp(-posiR/denom))*(exp(-competiR/denom)))
 
 
-def main(estimateKFactor=False):
+def fudge(place, elos):
+	return ((len(elos))/2-place)/100
+
+
+def irDelta(place, elos):
+	return (len(elos)-place-sum(map(lambda c: score(place, c, elos), range(1, len(elos)+1)))-0.5-fudge(place, elos))*200/len(elos)
+
+
+def calc_deltas(elos):
+	return [irDelta(elo['place'], elos) for elo in elos]
+
+
+def main():
 	# local iRacing API
 	ir = irsdk.IRSDK()
 
@@ -186,12 +176,19 @@ def main(estimateKFactor=False):
 						# finally lets sort out any special chars so all names will be displayed correctly in the windows console
 						name = name.encode('windows-1252', errors='replace').decode('windows-1252', errors='replace')
 
+
 						# is this driver our user?
 						if irw.custid == drv['UserID']:
 							# then this is their car type
 							my_car = drv['CarPath'][:3]
 							# wack > < around their name to highlight it
 							name = ">%s<" % name[:15]
+
+						# is this a pro driver? surround with @ @
+						trimmedName = re.search('([A-Za-zÀ-ž ]*)', drv["UserName"]).group(1).rstrip()
+						r = requests.get(f'https://www.driverdb.com/autocomp/?term={trimmedName}')
+						if r.status_code == 200 and len(r.text):
+							name = "@%s@" % name[:15]
 
 						# collect all the basic info up into a new row
 						row = ([int(drv['CarIdx']), drv['CarNumberRaw'], drv['CarPath'][:3].upper(), name, drv['LicString'], drv['IRating']])
@@ -307,9 +304,9 @@ def main(estimateKFactor=False):
 				global placements
 
 				custIds = [drv['UserID']
-						   for drv in ir['DriverInfo']['Drivers']]
+						   for drv in ir['DriverInfo']['Drivers'] if drv['UserName'] != 'Pace Car']
 				iRatings = [drv['IRating']
-							for drv in ir['DriverInfo']['Drivers']]
+							for drv in ir['DriverInfo']['Drivers'] if drv['UserName'] != 'Pace Car']
 				iRmap = dict(zip(custIds, iRatings))
 				iRDelta = {}
 
@@ -318,54 +315,20 @@ def main(estimateKFactor=False):
 						placements.add(tuple(choice(range(1,len(iRatings)+1), size=len(iRatings), replace=False, p=normalize(sorted(iRatings, reverse=True)))))
 						bar.update(len(placements))
 
-				# Estimate Kfactor
-				if estimateKFactor:
-					subsessions = [race["subsessionID"]
-								   for race in irw.lastrace_stats(irw.custid)]
-
-					for subsession in progressbar(subsessions, max_value=len(subsessions), prefix="Determining K:"):
-						raceResults = irw.event_results(subsession)[-1]
-						iRatings = [int(drv["Old iRating"]) for drv in raceResults]
-						myiRold = [int(drv["Old iRating"])
-								   for drv in raceResults if irw.custid == drv["Cust ID"]][0]
-
-						# don't process this subsession if someone else has my iRating
-						if len(argwhere(array(iRatings) == myiRold)) > 1:
-							continue
-
-						myiRnew = [int(drv["New iRating"])
-								   for drv in raceResults if irw.custid == drv["Cust ID"]][0]
-						actualiRDelta = myiRnew - myiRold
-						myPos = [int(drv["Fin Pos"])
-								 for drv in raceResults if irw.custid == drv["Cust ID"]][0]
-						kopt = minimize(
-							irDelta, [16.0], iRatings, options={'disp': False, 'eps': 0.5})
-						Kfactor = asscalar(kopt.x[0])
-						if abs(Kfactor - 16.0) < 1.0:  # don't trust results close to initial guess
-							continue
-						break
-				else:
-					Kfactor = 4.0
-				print('Using K = {}'.format(Kfactor))
-
 				for finPos in progressbar(range(1, count+1), prefix="Calculate irDelta:"):
-					myEstElo_deltas = []
+					myEstdeltas = []
 					for placement in placements:
-						elos = [EloPlayer(place=idx, elo=iRatings[ii])
+						elos = [{'place': idx, 'elo': iRatings[ii]}
 								for (idx, ii) in zip(placement, range(0, count))]
-						elos = sorted(elos, key=attrgetter('place'))
-						elos_ratings = [elo for (place, elo) in elos]
-						myEstEloIdx = asscalar(
-							argwhere(array(elos_ratings) == iRmap[int(irw.custid)])[0])
-						elos_places = [place for (place, elo) in elos]
+						elos = sorted(elos, key=itemgetter('place'))
+						elos_ratings = [elo['elo'] for elo in elos]
+						myEstEloIdx = elos_ratings.index(iRmap[int(irw.custid)])
+						elos_places = [elo['place'] for elo in elos]
 						if(finPos == elos_places[myEstEloIdx]):
-							est_elos = array(calc_new_elos(
-								elos, k=Kfactor), dtype=float64)
-							myEstElo = asscalar(est_elos[myEstEloIdx])
-							myEstElo_delta = myEstElo - iRmap[int(irw.custid)]
-							myEstElo_deltas.append(myEstElo_delta)
+							estDeltas = calc_deltas(elos)
+							myEstdeltas.append(estDeltas[myEstEloIdx])
 
-					iRDelta[finPos] = int(asscalar(mean(myEstElo_deltas))) if len(myEstElo_deltas) else float('nan')
+					iRDelta[finPos] = int(sum(myEstdeltas)/len(myEstdeltas)) if len(myEstdeltas) else float('nan')
 
 				tab.add_column("iRDelta", list(iRDelta.values()))
 
