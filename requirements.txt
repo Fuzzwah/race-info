@@ -1,3 +1,4 @@
+configobj
 requests
 numpy
 progressbar2
