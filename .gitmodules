@@ -1,8 +1,6 @@
 [submodule "ir_webstats"]
 	path = ir_webstats
-	url = https://github.com/jeysonmc/ir_webstats.git
-	ignore = all
+	url = https://github.com/lowlyocean/ir_webstats.git
 [submodule "pyirsdk"]
 	path = pyirsdk
 	url = https://github.com/kutu/pyirsdk.git
-	ignore = all
