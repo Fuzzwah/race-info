@@ -13,6 +13,8 @@ from collections import defaultdict
 import argparse
 from math import exp, log
 from numpy.random import choice
+from scipy.interpolate import interp1d
+from itertools import tee
 from operator import itemgetter
 from progressbar import ProgressBar, progressbar
 import requests
@@ -21,7 +23,10 @@ import re
 denom = 1600/log(2)
 
 scenarios = set()
-nScenarios = 10e3
+nScenarios = 1e3
+
+# taken from https://www.reddit.com/r/iRacing/comments/d44sa7/irating_percentage_ranks_road_active_accounts/
+cdf = interp1d([654,820,931,1023,1098,1163,1217,1268,1319,1375,1437,1507,1595,1717,1872,2084,2378,2831,3621,6447], [.05,.1,.15,.2,.25,.3,.35,.4,.45,.5,.55,.6,.65,.7,.75,.8,.85,.9,.95,1.0], kind='cubic', fill_value='extrapolate', assume_sorted=True)
 
 # set up our command line option for debugging
 parser = argparse.ArgumentParser()
@@ -33,10 +38,11 @@ if args.debug:
 	debug = True
 
 
-def normalize(x):
-	x = [exp(i**.5) for i in x]
-	s = sum(x)
-	return [float(i)/s for i in x]
+def pairwise(iterable):
+    "s -> (s0,s1), (s1,s2), (s2, s3), ..."
+    a, b = tee(iterable)
+    next(b, None)
+    return zip(a, b)
 
 
 def median(mylist):
@@ -59,11 +65,7 @@ def fudge(place, scenario):
 
 
 def ir_Delta(place, scenario):
-	return (len(scenario)-place-sum(map(lambda c: score(place, c, scenario), range(1, len(scenario)+1)))-0.5-fudge(place, scenario))*200/len(scenario)
-
-
-def calc_deltas(scenario):
-	return [ir_Delta(placement['place'], scenario) for placement in scenario]
+	return (len(scenario)-place-(sum(map(lambda c: score(place, c, scenario), range(1, len(scenario)+1)))-0.5)-fudge(place, scenario))*200/len(scenario)
 
 
 def main():
@@ -302,9 +304,12 @@ def main():
 				iRmap = dict(zip(custIds, iRatings))
 				iRDelta = {}
 
+				iRatings = sorted(iRatings, reverse=True)
+				p = list(map(lambda iR: cdf(iR) - cdf(min(iRatings)-20), iRatings))
+				p = [prob/sum(p) for prob in p]
 				with ProgressBar(max_value=nScenarios, prefix="Building scenarios:") as bar:
 					while len(scenarios) < nScenarios:
-						scenario = list(choice(range(1, len(iRatings) + 1), size=len(iRatings), replace=False, p=normalize(sorted(iRatings, reverse=True))))
+						scenario = list(choice(range(1, len(iRatings) + 1), size=len(iRatings), replace=False, p=p))
 						scenario = [{'place': idx, 'iR': iRatings[ii]}
 								for (idx, ii) in zip(scenario, range(0, count))]
 						scenario = sorted(scenario, key=itemgetter('place'))
@@ -312,7 +317,7 @@ def main():
 						bar.update(len(scenarios))
 
 				for finPos in progressbar(range(1, count+1), prefix="Calculate irDelta:"):
-					myEstdeltas = [calc_deltas([dict(placement) for placement in scenario])[finPos-1] for scenario in filter(lambda sc: dict(sc[finPos-1])['iR'] == iRmap[int(irw.custid)], scenarios)]
+					myEstdeltas = [ir_Delta(dict(scenario[finPos-1])['place'], [dict(placement) for placement in scenario]) for scenario in filter(lambda sc: dict(sc[finPos-1])['iR'] == iRmap[int(irw.custid)], scenarios)]
 					iRDelta[finPos] = int(sum(myEstdeltas)/len(myEstdeltas)) if len(myEstdeltas) else float('nan')
 
 				tab.add_column("iRDelta", list(iRDelta.values()))
