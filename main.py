@@ -12,7 +12,6 @@ import argparse
 from math import exp, log
 from random import choices
 from operator import itemgetter
-from progressbar import ProgressBar, progressbar
 import requests
 import re
 
@@ -52,8 +51,8 @@ def interp(x_arr, y_arr, x):
 
 
 # taken from https://www.reddit.com/r/iRacing/comments/d44sa7/irating_percentage_ranks_road_active_accounts/
-def cdf(iRating):
-	return interp([654,820,931,1023,1098,1163,1217,1268,1319,1375,1437,1507,1595,1717,1872,2084,2378,2831,3621,6447], [.05,.1,.15,.2,.25,.3,.35,.4,.45,.5,.55,.6,.65,.7,.75,.8,.85,.9,.95,1.0], iRating)
+def cdf(ir):
+	return interp([654,820,931,1023,1098,1163,1217,1268,1319,1375,1437,1507,1595,1717,1872,2084,2378,2831,3621,6447], [.05,.1,.15,.2,.25,.3,.35,.4,.45,.5,.55,.6,.65,.7,.75,.8,.85,.9,.95,1.0], ir)
 
 
 # from https://stackoverflow.com/a/43649323/1130698
@@ -259,7 +258,7 @@ def main():
 						drv_count[drv['CarPath'][:3]] += 1
 
 						# this sets the height of our window so it fits everything neatly
-				os.system("mode con lines=%s" % (count + 15))
+				os.system("mode con lines=%s" % (count + 13))
 
 				# if my_car isn't set, we're a spectator so lets just set it to be what ever the final car was... just so we can test things
 				if my_car == "":
@@ -334,16 +333,14 @@ def main():
 				iRatings = sorted(iRatings, reverse=True)
 				p = list(map(lambda iR: cdf(iR) - cdf(min(iRatings)-20), iRatings))
 				p = [prob/sum(p) for prob in p]
-				with ProgressBar(max_value=nScenarios, prefix="Building scenarios:") as bar:
-					while len(scenarios) < nScenarios:
-						scenario = weighted_sample_without_replacement(range(1, len(iRatings) + 1), p, k=len(iRatings))
-						scenario = [{'place': idx, 'iR': iRatings[ii]}
-								for (idx, ii) in zip(scenario, range(0, count))]
-						scenario = sorted(scenario, key=itemgetter('place'))
-						scenarios.add(tuple(frozenset(placement.items()) for placement in scenario))  # can't just add placement directly
-						bar.update(len(scenarios))
+				while len(scenarios) < nScenarios:
+					scenario = weighted_sample_without_replacement(range(1, len(iRatings) + 1), p, k=len(iRatings))
+					scenario = [{'place': idx, 'iR': iRatings[ii]}
+							for (idx, ii) in zip(scenario, range(0, count))]
+					scenario = sorted(scenario, key=itemgetter('place'))
+					scenarios.add(tuple(frozenset(placement.items()) for placement in scenario))  # can't just add placement directly
 
-				for finPos in progressbar(range(1, count+1), prefix="Calculate irDelta:"):
+				for finPos in range(1, count+1):
 					myEstdeltas = [ir_Delta(dict(scenario[finPos-1])['place'], [dict(placement) for placement in scenario]) for scenario in filter(lambda sc: dict(sc[finPos-1])['iR'] == iRmap[int(irw.custid)], scenarios)]
 					iRDelta[finPos] = int(sum(myEstdeltas)/len(myEstdeltas)) if len(myEstdeltas) else float('nan')
 
