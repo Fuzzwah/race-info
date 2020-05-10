@@ -2,19 +2,15 @@
 #-*- coding: utf-8 -*-
 
 import os
-import sys
 import json
 from pyirsdk import irsdk
 from prettytable import PrettyTable
-sys.path.append(os.path.join((os.path.dirname(os.path.abspath(__file__))), 'ir_webstats'))
-from ir_webstats.client import iRWebStats
+from ir_webstats.ir_webstats.client import iRWebStats
 import config as cfg
 from collections import defaultdict
 import argparse
 from math import exp, log
-from numpy.random import choice
-from scipy.interpolate import interp1d
-from itertools import tee
+from random import choices
 from operator import itemgetter
 from progressbar import ProgressBar, progressbar
 import requests
@@ -24,9 +20,6 @@ denom = 1600/log(2)
 
 scenarios = set()
 nScenarios = 1e3
-
-# taken from https://www.reddit.com/r/iRacing/comments/d44sa7/irating_percentage_ranks_road_active_accounts/
-cdf = interp1d([654,820,931,1023,1098,1163,1217,1268,1319,1375,1437,1507,1595,1717,1872,2084,2378,2831,3621,6447], [.05,.1,.15,.2,.25,.3,.35,.4,.45,.5,.55,.6,.65,.7,.75,.8,.85,.9,.95,1.0], kind='cubic', fill_value='extrapolate', assume_sorted=True)
 
 # set up our command line option for debugging
 parser = argparse.ArgumentParser()
@@ -38,11 +31,45 @@ if args.debug:
 	debug = True
 
 
-def pairwise(iterable):
-    "s -> (s0,s1), (s1,s2), (s2, s3), ..."
-    a, b = tee(iterable)
-    next(b, None)
-    return zip(a, b)
+# from https://blenderartists.org/t/numpy-interp-without-numpy/658363/2
+def interp(x_arr, y_arr, x):
+	for i, xi in enumerate(x_arr):
+		if xi >= x:
+			break
+
+	else:
+		return None
+
+	if i == 0:
+		return None
+
+	x_min = x_arr[i - 1]
+	y_min = y_arr[i - 1]
+	y_max = y_arr[i]
+	factor = (x - x_min) / (xi - x_min)
+
+	return y_min + (y_max - y_min) * factor
+
+
+# taken from https://www.reddit.com/r/iRacing/comments/d44sa7/irating_percentage_ranks_road_active_accounts/
+def cdf(iRating):
+	return interp([654,820,931,1023,1098,1163,1217,1268,1319,1375,1437,1507,1595,1717,1872,2084,2378,2831,3621,6447], [.05,.1,.15,.2,.25,.3,.35,.4,.45,.5,.55,.6,.65,.7,.75,.8,.85,.9,.95,1.0], iRating)
+
+
+# from https://stackoverflow.com/a/43649323/1130698
+def weighted_sample_without_replacement(population, weights, k=1):
+	weights = list(weights)
+	positions = range(len(population))
+	indices = []
+	while True:
+		needed = k - len(indices)
+		if not needed:
+			break
+		for i in choices(positions, weights, k=needed):
+			if weights[i]:
+				weights[i] = 0.0
+				indices.append(i)
+	return [population[i] for i in indices]
 
 
 def median(mylist):
@@ -309,7 +336,7 @@ def main():
 				p = [prob/sum(p) for prob in p]
 				with ProgressBar(max_value=nScenarios, prefix="Building scenarios:") as bar:
 					while len(scenarios) < nScenarios:
-						scenario = list(choice(range(1, len(iRatings) + 1), size=len(iRatings), replace=False, p=p))
+						scenario = weighted_sample_without_replacement(range(1, len(iRatings) + 1), p, k=len(iRatings))
 						scenario = [{'place': idx, 'iR': iRatings[ii]}
 								for (idx, ii) in zip(scenario, range(0, count))]
 						scenario = sorted(scenario, key=itemgetter('place'))

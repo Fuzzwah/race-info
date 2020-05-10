@@ -1,6 +1,4 @@
 configobj
 requests
-numpy
-scipy
 progressbar2
 prettytable
