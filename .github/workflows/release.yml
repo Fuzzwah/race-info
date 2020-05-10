@@ -15,7 +15,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v2
         with:
-          - submodules: 'recursive'
+          submodules: 'recursive'
       - name: Setup
         run: |
           pip install nuitka
