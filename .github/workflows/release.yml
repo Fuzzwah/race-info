@@ -8,7 +8,7 @@ name: Upload Release Asset
 jobs:
   build:
     name: Upload Release Asset
-    runs-on: windows-latest
+    runs-on: windows-2019
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
@@ -16,8 +16,9 @@ jobs:
           submodules: 'recursive'
       - name: Setup
         run: |
-          pip install pywin32 wheel nuitka
+          pip install nuitka
           pip install -r requirements.txt
+          'C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\Common7\Tools\VsDevCmd.bat'
       - name: Build
         run: |
           python -m nuitka --standalone --python-flag=-S --windows-dependency-tool=pefile race-info.py
