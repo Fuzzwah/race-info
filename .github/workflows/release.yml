@@ -35,7 +35,7 @@ jobs:
           dir
           cd "Build"
           dir
-          vcvars64.bat
+          call vcvars64.bat
           D:
           set
           python -m nuitka --standalone --python-flag=-S --windows-dependency-tool=pefile race-info.py
