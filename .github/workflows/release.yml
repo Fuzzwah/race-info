@@ -20,7 +20,10 @@ jobs:
           pip install -r requirements.txt
       - name: Build
         run: |
-          'C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\vcvarsall.bat x64'
+          cd 'C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build'
+          dir
+          vcvarsall.bat x64
+          cd -
           set
           python -m nuitka --standalone --python-flag=-S --windows-dependency-tool=pefile race-info.py
         shell: cmd
