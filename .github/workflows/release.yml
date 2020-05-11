@@ -22,8 +22,10 @@ jobs:
       - name: Setup
         run: |
           git config --global url.https://github.com/.insteadOf git://github.com/
+          git config --global -l
           pip install git+https://github.com/Nuitka/Nuitka.git@0.6.8#egg=Nuitka
           pip install -r requirements.txt
+        shell: cmd
       - name: Build
         run: |
           C:
