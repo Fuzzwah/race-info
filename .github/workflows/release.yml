@@ -37,7 +37,7 @@ jobs:
         shell: cmd
       - name: Compress
         run: |
-          Compress-Archive race-info.dist race-info.zip
+          Compress-Archive race-info.dist\* race-info.zip
         shell: powershell
       - name: Create Release
         id: create_release
