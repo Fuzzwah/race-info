@@ -21,19 +21,19 @@ jobs:
       - name: Build
         run: |
           C:
-          cd 'Program Files (x86)'
+          cd "Program Files (x86)"
           dir
-          cd 'Microsoft Visual Studio'
+          cd "Microsoft Visual Studio"
           dir
-          cd '2019'
+          cd "2019"
           dir
-          cd 'Enterprise'
+          cd "Enterprise"
           dir
-          cd 'VC'
+          cd "VC"
           dir
-          cd 'Auxiliary'
+          cd "Auxiliary"
           dir
-          cd 'Build'
+          cd "Build"
           dir
           vcvarsall.bat x64
           D:
