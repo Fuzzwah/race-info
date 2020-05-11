@@ -27,7 +27,7 @@ jobs:
         run: |
           C:
           cd "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\"
-          call vcvarsall.bat
+          call vcvars32.bat
           D:
           set
           python -m nuitka --standalone --python-flag=-S --windows-dependency-tool=pefile race-info.py
