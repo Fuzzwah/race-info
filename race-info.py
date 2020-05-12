@@ -3,7 +3,7 @@
 
 import os
 import json
-from pyirsdk import irsdk
+import irsdk
 from prettytable import PrettyTable
 from ir_webstats.ir_webstats.client import iRWebStats
 import config as cfg
