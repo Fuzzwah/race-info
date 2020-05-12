@@ -1,6 +1,3 @@
 [submodule "ir_webstats"]
 	path = ir_webstats
 	url = https://github.com/lowlyocean/ir_webstats.git
-[submodule "pyirsdk"]
-	path = pyirsdk
-	url = https://github.com/kutu/pyirsdk.git
