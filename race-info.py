@@ -56,33 +56,27 @@ def ir_Delta(place, scenario):
 
 def get_name(drv, ddb, irw, cls):
     global my_cls
-    nameParts = drv["UserName"].split(' ')
-    name = [nameParts[-1], nameParts[0]]
-    # if this isn't a multiclass race we have an extra 4 chars
-    # if the lastname is over 20 chars in length, trim it
-    name = "%s %s" % (name[1][:1], name[0][:20])
-    # pad all the names out to be 22 chars total
-    name = '{0: <22}'.format(name)
+    tags = []
+    name = drv["UserName"]
 
     # is this driver our user?
     if irw.custid == str(drv['UserID']):
         # then this is their car type
         my_cls = cls
-        # wack > < around their name to highlight it
-        name = ">%s<" % name[:15]
+        tags.append('user')
 
     if ddb:
-        # is this a pro driver? surround with @ @
-        trimmedName = re.search('([A-Za-zÀ-ž ]*)', drv["UserName"]).group(1).rstrip()
+        # is this a real-world driver?
+        trimmedName = re.search('([A-Za-zÀ-ž ]*)', name).group(1).rstrip()
         r = requests.get(f'https://www.driverdb.com/autocomp/?term={trimmedName}')
         if r.status_code == 200 and len(r.text):
-            name = "@%s@" % name[:15]
+            tags.append('ddb')
 
-    return name
+    return name, tags
 
 
 def build_row(drv, progress, ddb, irw, cls, web_api, seriesid, classPos, rowIdx):
-    name = get_name(drv, ddb, irw, cls)
+    (name, tags) = get_name(drv, ddb, irw, cls)
     # collect all the basic info up into a new row
     row = ([classPos, cls, name, drv['LicString'], drv['IRating']])
 
@@ -113,7 +107,7 @@ def build_row(drv, progress, ddb, irw, cls, web_api, seriesid, classPos, rowIdx)
 
     progress['value'] = rowIdx
     progress.winfo_toplevel().update()
-    return row
+    return row, tags
 
 
 def add_iRcolumn(tab, drv_by_class, custID):
@@ -231,7 +225,7 @@ def main():
             Label(popup, text='Getting driver information...').pack(anchor=W)
             progress.pack()
             counter = count(0)
-            rows = [build_row(drv, progress, 'True' == cfg.config['ddb'], irw, cls, web_api,
+            rows_tags = [build_row(drv, progress, 'True' == cfg.config['ddb'], irw, cls, web_api,
                               seriesid, classPos,
                               next(counter)) for (cls, cls_drivers) in drv_by_class.items() for (drv, classPos) in
                     zip(cls_drivers, range(1, len(cls_drivers) + 1))]
@@ -245,14 +239,16 @@ def main():
                               anchor=W, justify=LEFT)
             tab = Treeview(root, show=["headings"], height=cnt)
             tab["columns"] = display
+            tab.tag_configure('user', background='#FFF3B3')
+            tab.tag_configure('ddb', background='#7CFC00')
             for col in display:
-                tab.column(col, anchor=E if 'Name' != col else W, width=50 if 'Name' != col else 110)
+                tab.column(col, anchor=E if 'Name' != col else W, width=130 if 'Name' == col else (65 if 'Class' == col else 50))
                 tab.heading(col, text=col)
-            for row in rows:
-                tab.insert("", 'end', values=row)
+            for (row, tags) in rows_tags:
+                tab.insert("", 'end', values=row, tags=tags)
             add_iRcolumn(tab, drv_by_class, int(irw.custid))
             sofpoints.pack(anchor=W)
-            tab.pack(expand=1)
+            tab.pack()
             popup.withdraw()
             root.deiconify()
             root.mainloop()
