@@ -1,4 +1,5 @@
 configobj
 requests
 pyirsdk
+keyring
 pywin32
