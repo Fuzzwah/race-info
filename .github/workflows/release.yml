@@ -22,7 +22,7 @@ jobs:
       - name: Setup
         run: |
           pip install git+https://gitlab.com/lowlyocean/importlib_metadata#egg=importlib_metadata --upgrade &:: patched so keyring works with nuitka
-          pip install Nuitka>=0.6.8
+          pip install "Nuitka>=0.6.8"
           pip install -r requirements.txt
         shell: cmd
       - name: Build
@@ -32,7 +32,7 @@ jobs:
           call vcvars32.bat
           D:
           set
-          python -m nuitka --standalone --python-flag=-S --windows-dependency-tool=pefile --plugin-enable=tk-inter --windows-disable-console --include-module=win32timezone race-info.py
+          python -m nuitka --standalone --python-flag=-S --windows-dependency-tool=pefile --plugin-enable=tk-inter --include-module=win32timezone race-info.py
         shell: cmd
       - name: Compress
         run: |
