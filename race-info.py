@@ -4,6 +4,7 @@
 import argparse
 import json
 import re
+import traceback
 from itertools import groupby, count
 from math import exp, log
 from tkinter import Tk, Toplevel, Label, HORIZONTAL, W, E, LEFT
@@ -14,6 +15,7 @@ from tkinter.ttk import Treeview, Progressbar
 import irsdk
 import keyring
 import requests
+from keyring.backends import Windows
 
 import config as cfg
 from ir_webstats.ir_webstats.client import iRWebStats
@@ -178,6 +180,7 @@ def main():
 
     # get/store credentials & preferences
     cfg.read("config.ini")
+    keyring.set_keyring(Windows.WinVaultKeyring())
     if cfg.config['ddb'] == '':
         cfg.config['ddb'] = askyesno('DriverDb', 'Check if drivers are on DriverDB.com?')
     if cfg.config['username'] == '':
@@ -263,4 +266,7 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    except :
+        showerror(title='Exception', message=traceback.format_exc())
