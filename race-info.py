@@ -12,6 +12,7 @@ from tkinter.simpledialog import askstring
 from tkinter.ttk import Treeview, Progressbar
 
 import irsdk
+import keyring
 import requests
 
 import config as cfg
@@ -175,14 +176,17 @@ def main():
     root.title('Race Info')
     root.withdraw()  # hide for now
 
-    # try to read in a config file
+    # get/store credentials & preferences
     cfg.read("config.ini")
-    # if the password is blank, lets prompt the user for their details and save them
-    if cfg.config['password'] == '':
-        cfg.config['username'] = askstring('iRacing Login', 'Username')
-        cfg.config['password'] = askstring('iRacing Login', 'Password', show='*')
+    if cfg.config['ddb'] == '':
         cfg.config['ddb'] = askyesno('DriverDb', 'Check if drivers are on DriverDB.com?')
-        cfg.config.write()
+    if cfg.config['username'] == '':
+        cfg.config['username'] = askstring('iRacing Login', 'Username')
+        pw = askstring('iRacing Login', 'Password', show='*')
+        keyring.set_password('race-info', cfg.config['username'], pw)
+    else:
+        pw = keyring.get_password('race-info', cfg.config['username'])
+    cfg.config.write()
 
     # check if the local API can talk to the game, ie: is iRacing running
     if ir.startup():
@@ -200,7 +204,7 @@ def main():
 
             try:
                 # let the user know we're connecting to the website
-                irw.login(cfg.config['username'], cfg.config['password'])
+                irw.login(cfg.config['username'], pw)
                 web_api = True
             except:
                 # if it didn't work we'll set up only the minimal table

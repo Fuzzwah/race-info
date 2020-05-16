@@ -1,7 +1,6 @@
 #!python3
 
 import os
-import sys
 import configobj
 
 cfg_file = "config.ini"
@@ -11,8 +10,8 @@ if not os.path.isfile(cfg_file):
 	config = configobj.ConfigObj()
 	config.filename = cfg_file
 
-	config['username'] = 'your email address'
-	config['password'] = ''
+	config['username'] = ''
+	config['ddb'] = ''
 
 	config.write()
 
