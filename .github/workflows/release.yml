@@ -32,7 +32,7 @@ jobs:
           call vcvars32.bat
           D:
           set
-          python -m nuitka --standalone --python-flag=-S --windows-dependency-tool=pefile --plugin-enable=tk-inter --include-module=win32timezone race-info.py
+          python -m nuitka --standalone --python-flag=-S --windows-dependency-tool=pefile --plugin-enable=tk-inter race-info.py
         shell: cmd
       - name: Compress
         run: |
