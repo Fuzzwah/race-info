@@ -1,3 +1,4 @@
 configobj
 requests
 pyirsdk
+pywin32
