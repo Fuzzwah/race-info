@@ -24,6 +24,7 @@ jobs:
           pip install git+https://gitlab.com/lowlyocean/importlib_metadata#egg=importlib_metadata --upgrade &:: patched so keyring works with nuitka
           pip install "Nuitka>=0.6.8"
           pip install -r requirements.txt
+          python Scripts/pywin32_postinstall.py -install
         shell: cmd
       - name: Build
         run: |
