@@ -22,4 +22,4 @@ The iRDelta column shows an estimate of how your iRating will change if you ende
 
 ## Example Output
 
-![](https://user-images.githubusercontent.com/13685818/82134066-6a87fa00-97c1-11ea-9c50-1970616cec8e.png)
+![](https://user-images.githubusercontent.com/13685818/82134122-3f51da80-97c2-11ea-8e14-874a5d0ad3bb.png)
