@@ -2,4 +2,4 @@ configobj
 requests
 pyirsdk
 keyring
-pywin32-ctypes
+pywin32
