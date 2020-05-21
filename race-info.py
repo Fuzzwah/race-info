@@ -8,6 +8,7 @@ import traceback
 from itertools import groupby, count
 from math import exp, log
 from tkinter import Tk, Toplevel, Label, HORIZONTAL, W, E, LEFT
+from tkinter.font import Font
 from tkinter.messagebox import askyesno, showerror
 from tkinter.simpledialog import askstring
 from tkinter.ttk import Treeview, Progressbar
@@ -248,14 +249,21 @@ def main():
             tab["columns"] = display
             tab.tag_configure('user', background='#FFF3B3')
             tab.tag_configure('ddb', background='#7CFC00')
-            for col in display:
-                tab.column(col, anchor=E if 'Name' != col else W, width=130 if 'Name' == col else (65 if 'Class' == col else 50))
-                tab.heading(col, text=col)
             for (row, tags) in rows_tags:
                 tab.insert("", 'end', values=row, tags=tags)
             add_iRcolumn(tab, drv_by_class, int(irw.custid))
+            for col in display:
+                tab.column(col, anchor=E if 'Name' != col else W, width=min([int(Font().measure(['W'] * 84) * .62), max(
+                    [Font().measure(col),
+                     *[Font().measure(str(tab.item(row)['values'][display.index(col)])) for row in
+                       tab.get_children()]])]))
+                tab.heading(col, text=col)
             sofpoints.pack(anchor=W)
             tab.pack()
+            tab.bind('<Control-c>', lambda _e: root.clipboard_clear() or root.clipboard_append(
+                '\n'.join([','.join(tab["columns"]),
+                           *(','.join(['"' + str(i) + '"' for i in tab.item(r)['values']]) for r in
+                             tab.get_children())])))
             popup.withdraw()
             root.deiconify()
             root.mainloop()
