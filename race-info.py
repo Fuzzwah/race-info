@@ -119,7 +119,7 @@ def add_iRcolumn(tab, drv_by_class, custID):
     iRDelta = []
     for (cls, cls_drivers) in drv_by_class.items():
         if my_cls != cls:
-            iRDelta.extend([None] * len(cls_drivers))
+            iRDelta.extend([''] * len(cls_drivers))
             continue
         iRmap = {drv['UserID']: drv['IRating'] for drv in cls_drivers}
         for finPos in range(1, len(cls_drivers) + 1):
